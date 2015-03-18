@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>MongoMigrations</id>
-    <version>$version$</version>
+    <version>2.0.0-rc0</version>
     <authors>https://github.com/phoenixwebgroup/DotNetMongoMigrations</authors>
     <owners></owners>
     <licenseUrl>https://github.com/phoenixwebgroup/DotNetMongoMigrations</licenseUrl>
@@ -10,5 +10,12 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Mongo migrations for dot net developers</description>
     <tags>Mongo Migrations</tags>
+	<dependencies>
+		<dependency id="mongocsharpdriver" version="2.0.0-rc0" />
+	</dependencies>
   </metadata>
+  <files>
+	<file src="$outputfolder$v4.5.1\mongomigrations.dll" target="lib\net451" />
+	<file src="$outputfolder$v4.5.1\runmongomigrations.exe" target="tools" />
+  </files>
 </package>
