@@ -1,23 +1,23 @@
+using System;
+using MongoDB.Bson.Serialization;
+
 namespace MongoMigrations
 {
-	using System;
-	using MongoDB.Bson.IO;
-	using MongoDB.Bson.Serialization;
-	using MongoDB.Bson.Serialization.Serializers;
+    public class MigrationVersionSerializer : IBsonSerializer
+    {
+        public Type ValueType => typeof(MigrationVersion);
 
-	public class MigrationVersionSerializer : BsonBaseSerializer
-	{
-		public override void Serialize(BsonWriter bsonWriter, Type nominalType, object value, IBsonSerializationOptions options)
-		{
-			var version = (MigrationVersion) value;
-			var versionString = string.Format("{0}.{1}.{2}", version.Major, version.Minor, version.Revision);
-			bsonWriter.WriteString(versionString);
-		}
+	    public object Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
+	    {
+            var versionString = context.Reader.ReadString();
+            return new MigrationVersion(versionString);
+        }
 
-		public override object Deserialize(BsonReader bsonReader, Type nominalType, Type actualType, IBsonSerializationOptions options)
-		{
-			var versionString = bsonReader.ReadString();
-			return new MigrationVersion(versionString);
-		}
-	}
+        public void Serialize(BsonSerializationContext context, BsonSerializationArgs args, object value)
+	    {
+            var version = (MigrationVersion)value;
+            var versionString = string.Format("{0}.{1}.{2}", version.Major, version.Minor, version.Revision);
+            context.Writer.WriteString(versionString);
+        }
+    }
 }

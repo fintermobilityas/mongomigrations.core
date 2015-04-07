@@ -1,3 +1,6 @@
+# added by peters:
+.buildtools/
+
 # use glob syntax
 syntax: glob
 
