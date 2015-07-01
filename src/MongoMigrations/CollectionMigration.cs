@@ -65,9 +65,11 @@ namespace MongoMigrations
 		protected virtual IEnumerable<BsonDocument> GetDocuments(MongoCollection<BsonDocument> collection)
 		{
 			var query = Filter();
-			return query != null
-			       	? collection.Find(query)
-			       	: collection.FindAll();
+            var cursor = query != null
+                       ? collection.Find(query)
+                       : collection.FindAll();
+		    cursor.SetFlags(QueryFlags.NoCursorTimeout);
+		    return cursor;
 		}
 	}
 }
