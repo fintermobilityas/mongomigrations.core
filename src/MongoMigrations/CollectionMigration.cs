@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace MongoMigrations
 {
 	using System;
@@ -8,6 +10,7 @@ namespace MongoMigrations
 	public abstract class CollectionMigration : Migration
 	{
 		protected string CollectionName;
+	    protected int BatchSize = 1000;
 
 		public CollectionMigration(MigrationVersion version, string collectionName) : base(version)
 		{
@@ -21,20 +24,32 @@ namespace MongoMigrations
 
 		public override void Update()
 		{
-			var collection = GetCollection();
-			var documents = GetDocuments(collection);
-			UpdateDocuments(collection, documents);
+		    var skip = 0;
+		    while (true)
+		    {
+                var collection = GetCollection();
+                var documents = GetDocuments(collection, skip);
+		        if (documents.Any())
+		        {
+		            UpdateDocuments(collection, documents);
+		            skip += documents.Count;
+		        }
+		        else
+		        {
+		            break;
+		        }
+		    }
 		}
 
-		public virtual void UpdateDocuments(MongoCollection<BsonDocument> collection, IEnumerable<BsonDocument> documents)
+		public virtual void UpdateDocuments(MongoCollection<BsonDocument> collection, List<BsonDocument> documents)
 		{
 			foreach (var document in documents)
 			{
-				try
-				{
-					UpdateDocument(collection, document);
-				}
-				catch (Exception exception)
+			    try
+			    {
+			        UpdateDocument(collection, document);
+			    }
+				catch (MongoException exception)
 				{
 					OnErrorUpdatingDocument(document, exception);
 				}
@@ -62,14 +77,15 @@ namespace MongoMigrations
 			return Database.GetCollection(CollectionName);
 		}
 
-		protected virtual IEnumerable<BsonDocument> GetDocuments(MongoCollection<BsonDocument> collection)
+		protected virtual List<BsonDocument> GetDocuments(MongoCollection<BsonDocument> collection, int skip = 0)
 		{
 			var query = Filter();
             var cursor = query != null
                        ? collection.Find(query)
                        : collection.FindAll();
-		    cursor.SetFlags(QueryFlags.NoCursorTimeout);
-		    return cursor;
+		    cursor.SetSkip(skip);
+		    cursor.SetLimit(BatchSize);
+		    return cursor.ToList();
 		}
 	}
 }
