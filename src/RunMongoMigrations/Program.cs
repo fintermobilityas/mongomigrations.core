@@ -18,7 +18,7 @@ namespace RunMongoMigrations
 			var database = args[1];
 			var migrationsAssembly = args[2];
 			
-			var runner = new MigrationRunner(("mongodb://" + server), database);
+			var runner = new MigrationRunner("mongodb://" + server, database);
 
 			runner.MigrationLocator.LookForMigrationsInAssembly(Assembly.LoadFrom(migrationsAssembly));
 
