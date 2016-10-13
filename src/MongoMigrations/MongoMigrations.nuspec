@@ -11,7 +11,7 @@
     <description>Mongo migrations for dot net developers</description>
     <tags>Mongo Migrations</tags>
 	<dependencies>
-		<dependency id="mongocsharpdriver" version="2.0.1" />
+		<dependency id="mongocsharpdriver" version="2.3.0" />
 	</dependencies>
   </metadata>
   <files>
