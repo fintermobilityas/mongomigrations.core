@@ -32,7 +32,7 @@ namespace MongoMigrations
         public static void Save(this IMongoCollection<BsonDocument> collection, BsonDocument bsonDocument, string id = "_id")
         {
             var documentId = bsonDocument.GetValue(id);
-            collection.ReplaceOne(Builders<BsonDocument>.Filter.Eq(x => id, documentId), bsonDocument);
+            collection.ReplaceOne(Builders<BsonDocument>.Filter.Eq(x => x[id], documentId), bsonDocument);
         }
     }
 }
