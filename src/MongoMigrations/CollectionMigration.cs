@@ -17,7 +17,7 @@ namespace MongoMigrations
 			CollectionName = collectionName;
 		}
 
-		public virtual IMongoQuery Filter()
+		public virtual FilterDefinition<BsonDocument> Filter()
 		{
 			return null;
 		}
@@ -41,7 +41,7 @@ namespace MongoMigrations
 		    }
 		}
 
-		public virtual void UpdateDocuments(MongoCollection<BsonDocument> collection, List<BsonDocument> documents)
+		public virtual void UpdateDocuments(IMongoCollection<BsonDocument> collection, List<BsonDocument> documents)
 		{
 			foreach (var document in documents)
 			{
@@ -70,21 +70,25 @@ namespace MongoMigrations
 			throw new MigrationException(message.ToString(), exception);
 		}
 
-		public abstract void UpdateDocument(MongoCollection<BsonDocument> collection, BsonDocument document);
+		public abstract void UpdateDocument(IMongoCollection<BsonDocument> collection, BsonDocument document);
 
-		protected virtual MongoCollection<BsonDocument> GetCollection()
+		protected virtual IMongoCollection<BsonDocument> GetCollection()
 		{
-			return Database.GetCollection(CollectionName);
+			return Database.GetCollection<BsonDocument>(CollectionName);
 		}
 
-		protected virtual List<BsonDocument> GetDocuments(MongoCollection<BsonDocument> collection, int skip = 0)
+		protected virtual List<BsonDocument> GetDocuments(IMongoCollection<BsonDocument> collection, int skip = 0)
 		{
-			var query = Filter();
-            var cursor = query != null
-                       ? collection.Find(query)
-                       : collection.FindAll();
-		    cursor.SetSkip(skip);
-		    cursor.SetLimit(BatchSize);
+		    var filter = Filter();
+
+		    var cursor = filter != null ? 
+                collection.Find(filter) : 
+                collection.Find(FilterDefinition<BsonDocument>.Empty);
+
+            cursor
+                .Skip(skip)
+                .Limit(BatchSize);
+
 		    return cursor.ToList();
 		}
 	}
