@@ -3,7 +3,7 @@ using MongoDB.Bson.Serialization;
 
 namespace MongoMigrations
 {
-    public class MigrationVersionSerializer : IBsonSerializer
+    public class MigrationVersionSerializer : IBsonSerializer<MigrationVersion>
     {
         public Type ValueType => typeof(MigrationVersion);
 
@@ -13,11 +13,20 @@ namespace MongoMigrations
             return new MigrationVersion(versionString);
         }
 
+        public void Serialize(BsonSerializationContext context, BsonSerializationArgs args, MigrationVersion value)
+        {
+            var versionString = $"{value.Major}.{value.Minor}.{value.Revision}";
+            context.Writer.WriteString(versionString);
+        }
+
+        MigrationVersion IBsonSerializer<MigrationVersion>.Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
+        {
+            return (MigrationVersion) Deserialize(context, args);
+        }
+
         public void Serialize(BsonSerializationContext context, BsonSerializationArgs args, object value)
 	    {
-            var version = (MigrationVersion)value;
-            var versionString = string.Format("{0}.{1}.{2}", version.Major, version.Minor, version.Revision);
-            context.Writer.WriteString(versionString);
+            Serialize(context, args, (MigrationVersion) value);
         }
     }
 }
