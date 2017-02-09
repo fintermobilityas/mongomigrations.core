@@ -67,6 +67,7 @@
   <ItemGroup>
     <Compile Include="AppliedMigration.cs" />
     <Compile Include="BsonDocumentExtensions.cs" />
+    <Compile Include="MigrationExtensions.cs" />
     <Compile Include="CollectionMigration.cs" />
     <Compile Include="DatabaseMigrationStatus.cs" />
     <Compile Include="ExcludeExperimentalMigrations.cs" />
