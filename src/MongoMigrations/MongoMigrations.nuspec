@@ -10,9 +10,6 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Mongo migrations for dot net developers</description>
     <tags>Mongo Migrations</tags>
-	<dependencies>
-		<dependency id="mongocsharpdriver" version="2.3.0" />
-	</dependencies>
   </metadata>
   <files>
 	<file src="$outputfolder$v4.6.1\mongomigrations.dll" target="lib\net461" />
