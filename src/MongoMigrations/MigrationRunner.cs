@@ -1,10 +1,8 @@
-using static System.String;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
-using MongoDB.Driver.Core.Clusters.ServerSelectors;
 
 namespace MongoMigrations
 {

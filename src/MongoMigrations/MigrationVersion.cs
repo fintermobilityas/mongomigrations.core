@@ -41,7 +41,7 @@
 			}
 		}
 
-		public MigrationVersion(int major, int minor, int revision)
+		public MigrationVersion(int major, int minor = 0, int revision = 0)
 		{
 			Major = major;
 			Minor = minor;
