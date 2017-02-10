@@ -15,7 +15,7 @@
 	</dependencies>
   </metadata>
   <files>
-	<file src="$outputfolder$v4.5.1\mongomigrations.dll" target="lib\net451" />
-	<file src="$outputfolder$v4.5.1\runmongomigrations.exe" target="tools" />
+	<file src="$outputfolder$v4.6.1\mongomigrations.dll" target="lib\net461" />
+	<file src="$outputfolder$v4.6.1\runmongomigrations.exe" target="tools" />
   </files>
 </package>

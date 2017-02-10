@@ -83,14 +83,28 @@ function MyGet-AssemblyVersion-Set {
             [string]
             $assemblyInfo
         )
+		
+		$nugetVersion = $version
+		$version = $version -match "\d+\.\d+\.\d+"
+		$version = $matches[0]
 
         $numberOfReplacements = 0
         $newContent = Get-Content $assemblyInfo | %{
-            $regex = "(Assembly(?:File|Informational)?Version)\(`"\d+\.\d+\.\d+`"\)"
+            $regex = "(Assembly(?:File)?Version)\(`"\d+\.\d+\.\d+`"\)"
             $newString = $_
             if ($_ -match $regex) {
                 $numberOfReplacements++
                 $newString = $_ -replace $regex, "`$1(`"$version`")"
+            }
+            $newString
+        }		
+			
+	    $newContent = $newContent | %{
+            $regex = "(AssemblyInformationalVersion)\(`".*`"\)"
+            $newString = $_
+            if ($_ -match $regex) {
+                $numberOfReplacements++
+                $newString = $_ -replace $regex, "`$1(`"$nugetVersion`")"
             }
             $newString
         }
@@ -98,7 +112,7 @@ function MyGet-AssemblyVersion-Set {
         if ($numberOfReplacements -ne 3) {
             MyGet-Die "Expected to replace the version number in 3 places in AssemblyInfo.cs (AssemblyVersion, AssemblyFileVersion, AssemblyInformationalVersion) but actually replaced it in $numberOfReplacements"
         }
-
+		
         $newContent | Set-Content $assemblyInfo -Encoding UTF8
     }
 
@@ -905,7 +919,7 @@ function MyGet-Normalize-Paths {
 function MyGet-TargetFramework-To-Clr {
     param(
         [parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true)]
-        [ValidateSet("v2.0", "v3.5", "v4.0", "v4.5", "v4.5.1")]
+        [ValidateSet("v2.0", "v3.5", "v4.0", "v4.5", "v4.5.1", "v4.6", "v4.6.1", "v4.6.2")]
         [string]$targetFramework
     )
 
@@ -927,6 +941,15 @@ function MyGet-TargetFramework-To-Clr {
         "v4.5.1" {
             $clr = "net451"
         }
+		"v4.6" {
+			$clr = "net46"
+		}
+		"v4.6.1" {
+			$clr = "net461"
+		}
+		"v4.6.2" {
+		    $clr = "net462"
+		}
     }
 
     return $clr
@@ -935,7 +958,7 @@ function MyGet-TargetFramework-To-Clr {
 function MyGet-Clr-To-TargetFramework {
     param(
         [parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true)]
-        [ValidateSet("net20", "net35", "net40", "net45", "net451")]
+        [ValidateSet("net20", "net35", "net40", "net45", "net451", "net46", "net461","net462")]
         [string]$clr
     )
 
@@ -957,6 +980,15 @@ function MyGet-Clr-To-TargetFramework {
         "net451" {
             $targetFramework = "v4.5.1"
         }
+		"net46" {
+			$targetFramework = "v4.6"
+		}
+		"net461" {
+			$targetFramework = "v4.6.1"
+		}
+		"net462" {
+			$targetFramework = "v4.6.2"
+		}
     }
 
     return $targetFramework
@@ -981,11 +1013,14 @@ function MyGet-Build-Clean {
     )
 
     MyGet-Write-Diagnostic "Build: Clean"
+    
+    $deleteFolders = $folders -split ","
 
-    Get-ChildItem $rootFolder -Include $folders -Recurse | ForEach-Object {
-       Remove-Item $_.fullname -Force -Recurse 
+    Foreach($deletePath in $deleteFolders) {
+        if (Test-Path "$rootFolder/$deletePath"){
+            Remove-Item -Recurse -Force "$rootFolder/$deletePath"
+        }
     }
-
 }
 
 function MyGet-Build-Bootstrap {
@@ -1136,11 +1171,11 @@ function MyGet-Build-Project {
         [string]$version,
         
         [parameter(Position = 6, Mandatory = $false, ValueFromPipeline = $true)]
-        [ValidateSet("v1.1", "v2.0", "v3.5", "v4.0", "v4.5", "v4.5.1")]
+        [ValidateSet("v1.1", "v2.0", "v3.5", "v4.0", "v4.5", "v4.5.1", "v4.6", "v4.6.1", "v4.6.2")]
         [string[]]$targetFrameworks = @(),
 
         [parameter(Position = 7, Mandatory = $false, ValueFromPipeline = $true)]
-        [ValidateSet("v1.1", "v2.0", "v3.5", "v4.0", "v4.5", "v4.5.1")]
+        [ValidateSet("v1.1", "v2.0", "v3.5", "v4.0", "v4.5", "v4.5.1", "v4.6", "v4.6.1", "v4.6.2")]
         [string]$targetFramework = $null,
 
         [parameter(Position = 8, Mandatory = $true, ValueFromPipeline = $true)]

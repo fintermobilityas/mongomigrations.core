@@ -23,7 +23,7 @@ $MSBuildPath = "${env:ProgramFiles(x86)}\MSBuild\14.0\Bin\msbuild.exe"
 $nuspec = Join-Path $rootFolder "src\mongomigrations\mongomigrations.nuspec"
 $outputFolder = Join-Path $rootFolder "bin"
 $platforms = @("AnyCpu")
-$targetFrameworks = @("v4.5.1")
+$targetFrameworks = @("v4.6.1")
 $projects = @(
 	"src\mongomigrations\mongomigrations.csproj",
 	"src\runmongomigrations\runmongomigrations.csproj"
