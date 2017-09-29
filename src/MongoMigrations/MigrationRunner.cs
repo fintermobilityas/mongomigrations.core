@@ -63,7 +63,7 @@ namespace MongoMigrations
             Console.WriteLine(new {Message = "Applying migration", migration.Version, migration.Description, Database.DatabaseNamespace.DatabaseName});
 
             var appliedMigration = DatabaseStatus.StartMigration(migration);
-            migration.Database = migration.Database;
+            migration.Database = Database;
 
             try
             {
