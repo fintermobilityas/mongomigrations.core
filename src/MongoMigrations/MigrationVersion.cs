@@ -22,16 +22,16 @@ namespace MongoMigrations
         {
             var versionParts = version?.Split('.') ?? new string[] {};
             if (versionParts.Length != 3)
-                throw new ArgumentException($"Versions must have format: major.minor.revision, this doesn\'t match: {version}");
+                throw new ArgumentException($"Versions must have format: major.minor.revision, this doesn\'t match: {version}", nameof(version));
             var majorString = versionParts[0];
             if (!int.TryParse(majorString, out Major))
-                throw new ArgumentException($"Invalid major version value: {majorString}");
+                throw new ArgumentException($"Invalid major version value: {majorString}", nameof(version));
             var minorString = versionParts[1];
             if (!int.TryParse(minorString, out Minor))
-                throw new ArgumentException($"Invalid major version value: {minorString}");
+                throw new ArgumentException($"Invalid major version value: {minorString}", nameof(version));
             var revisionString = versionParts[2];
             if (!int.TryParse(revisionString, out Revision))
-                throw new ArgumentException($"Invalid major version value: {revisionString}");
+                throw new ArgumentException($"Invalid major version value: {revisionString}", nameof(version));
         }
 
         [UsedImplicitly]
