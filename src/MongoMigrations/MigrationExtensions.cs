@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace MongoMigrations
@@ -27,6 +30,22 @@ namespace MongoMigrations
             if (migrationsAssembly == null) throw new ArgumentNullException(nameof(migrationsAssembly));
 
             return IsDbUpToDate(db, migrationsAssembly, out _);
+        }
+
+        [UsedImplicitly]
+        public static bool IsTypeOf(this BsonDocument document, string typeName)
+        {
+            if (!document.TryGetValue("_t", out var value))
+            {
+                throw new KeyNotFoundException($"Document does not contain key: _t`{typeName}");
+            }
+
+            if (value.BsonType != BsonType.Array)
+            {
+                throw new Exception($"Expected _t`{typeName}` to be instance of {nameof(BsonType.Array)} but was {value.BsonType}.");
+            }
+
+            return value.AsBsonArray.Select(x => x.AsString).Contains(typeName, StringComparer.InvariantCulture);
         }
     }
 }
