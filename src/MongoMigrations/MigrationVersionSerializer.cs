@@ -5,8 +5,8 @@ namespace MongoMigrations
 {
     public class MigrationVersionSerializer : SerializerBase<MigrationVersion>
     {
-	    public override MigrationVersion Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
-	    {
+        public override MigrationVersion Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
+        {
             var versionString = context.Reader.ReadString();
             return new MigrationVersion(versionString);
         }

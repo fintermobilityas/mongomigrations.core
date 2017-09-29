@@ -1,15 +1,16 @@
-﻿using MongoDB.Driver;
+﻿using System.Linq;
+using MongoDB.Bson;
+using MongoDB.Driver;
+using JetBrains.Annotations;
 
 namespace MongoMigrations
 {
-    using System.Linq;
-    using MongoDB.Bson;
-
     public static class BsonDocumentExtensions
     {
         /// <summary>
-        /// 	Rename all instances of a name in a bson document to the new name.
+        ///     Rename all instances of a name in a bson document to the new name.
         /// </summary>
+        [UsedImplicitly]
         public static void ChangeName(this BsonDocument bsonDocument, string originalName, string newName)
         {
             var elements = bsonDocument.Elements
@@ -24,11 +25,11 @@ namespace MongoMigrations
 
         public static object TryGetDocumentId(this BsonDocument bsonDocument)
         {
-            BsonValue id;
-            bsonDocument.TryGetValue("_id", out id);
+            bsonDocument.TryGetValue("_id", out var id);
             return id ?? "Cannot find id";
         }
 
+        [UsedImplicitly]
         public static void Save(this IMongoCollection<BsonDocument> collection, BsonDocument bsonDocument, string id = "_id")
         {
             var documentId = bsonDocument.GetValue(id);

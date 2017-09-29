@@ -1,11 +1,11 @@
-﻿namespace MongoMigrations
-{
-	using System;
+﻿using System;
 
-	public class MigrationException : ApplicationException
-	{
-		public MigrationException(string message, Exception innerException) : base(message, innerException)
-		{
-		}
-	}
+namespace MongoMigrations
+{
+    public class MigrationException : ApplicationException
+    {
+        public MigrationException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
+    }
 }

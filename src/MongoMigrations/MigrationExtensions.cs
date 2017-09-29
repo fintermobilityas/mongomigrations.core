@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Reflection;
+using JetBrains.Annotations;
 using MongoDB.Driver;
 
 namespace MongoMigrations
 {
+    [UsedImplicitly]
     public static class MigrationExtensions
     {
+        [UsedImplicitly]
         public static bool IsDbUpToDate(this IMongoDatabase db, Assembly migrationsAssembly, out MigrationVersion current)
         {
             if (db == null) throw new ArgumentNullException(nameof(db));
@@ -17,13 +20,13 @@ namespace MongoMigrations
             return !runner.DatabaseStatus.IsNotLatestVersion();
         }
 
+        [UsedImplicitly]
         public static bool IsDbUpToDate(this IMongoDatabase db, Assembly migrationsAssembly)
         {
             if (db == null) throw new ArgumentNullException(nameof(db));
             if (migrationsAssembly == null) throw new ArgumentNullException(nameof(migrationsAssembly));
 
-            MigrationVersion version;
-            return IsDbUpToDate(db, migrationsAssembly, out version);
+            return IsDbUpToDate(db, migrationsAssembly, out _);
         }
     }
 }

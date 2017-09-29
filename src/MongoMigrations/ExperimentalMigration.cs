@@ -1,9 +1,11 @@
-﻿namespace MongoMigrations
-{
-	using System;
+﻿using System;
+using JetBrains.Annotations;
 
-	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-	public class ExperimentalAttribute : Attribute
-	{
-	}
+namespace MongoMigrations
+{
+    [UsedImplicitly]
+    [AttributeUsage(AttributeTargets.Class)]
+    public class ExperimentalAttribute : Attribute
+    {
+    }
 }

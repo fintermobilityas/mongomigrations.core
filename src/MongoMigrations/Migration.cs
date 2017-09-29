@@ -1,36 +1,34 @@
 using System;
+using JetBrains.Annotations;
 using MongoDB.Bson;
+using MongoDB.Driver;
 
 namespace MongoMigrations
 {
-	using MongoDB.Driver;
-
     public interface IMigration
     {
-        IMongoDatabase Database { get; }
+        [UsedImplicitly] IMongoDatabase Database { get; }
         MigrationVersion Version { get; }
-        string Description { get; set; }
-        void Update();
+        string Description { get; [UsedImplicitly] set; }
+        [UsedImplicitly] void Update();
     }
 
     public interface IMigrationProperty
     {
-        
     }
 
     public interface IMigrationInvokable
     {
-        
     }
 
     public interface ISupportFilter : IMigrationProperty
     {
-        FilterDefinition<BsonDocument> Filter { get; set; }
+        [UsedImplicitly] FilterDefinition<BsonDocument> Filter { get; set; }
     }
 
     public interface ISupportBatchSize : IMigrationProperty
     {
-        int BatchSize { get; set; }
+        [UsedImplicitly] int BatchSize { get; set; }
     }
 
     public interface ISupportOnBeforeMigration : IMigrationInvokable
@@ -45,19 +43,17 @@ namespace MongoMigrations
 
     public abstract class Migration : IMigration
     {
+        protected Migration(MigrationVersion version)
+        {
+            if (version == null)
+                throw new ArgumentNullException(nameof(version));
+            Version = version;
+        }
+
         public IMongoDatabase Database { get; internal set; }
         public MigrationVersion Version { get; protected set; }
         public string Description { get; set; }
 
-        protected Migration(MigrationVersion version)
-		{
-		    if (version == null)
-		    {
-		        throw new ArgumentNullException(nameof(version));
-		    }
-			Version = version;
-		}
-
-		public abstract void Update();
-	}
+        public abstract void Update();
+    }
 }
