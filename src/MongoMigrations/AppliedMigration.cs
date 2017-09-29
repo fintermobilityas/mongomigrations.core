@@ -11,7 +11,7 @@ namespace MongoMigrations
 		{
 		}
 
-		public AppliedMigration(Migration migration)
+		public AppliedMigration(IMigration migration)
 		{
 			Version = migration.Version;
 			StartedOn = DateTime.Now;

@@ -52,7 +52,7 @@
 				.FirstOrDefault();
 		}
 
-		public virtual AppliedMigration StartMigration(Migration migration)
+		public virtual AppliedMigration StartMigration(IMigration migration)
 		{
 			var appliedMigration = new AppliedMigration(migration);
 			GetMigrationsApplied().InsertOne(appliedMigration);

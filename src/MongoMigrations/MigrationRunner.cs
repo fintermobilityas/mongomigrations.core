@@ -61,21 +61,22 @@ namespace MongoMigrations
 			Console.WriteLine(new {Message = "Applying migration", migration.Version, migration.Description, DatabaseName = Database.DatabaseNamespace.DatabaseName});
 
 			var appliedMigration = DatabaseStatus.StartMigration(migration);
-			migration.Database = Database;
-			try
-			{
-                migration.OnBeforeMigration();
-				migration.Update();
-                migration.OnAfterSuccessfulMigration();
+		    migration.Database = migration.Database;
+
+            try
+            {
+                InvokeIf<ISupportOnBeforeMigration>(migration, x => x.OnBeforeMigration());
+                migration.Update();
+                InvokeIf<ISupportOnAfterSuccessfullMigration>(migration, x => x.OnAfterSuccessfulMigration());
 			}
-			catch (Exception exception)
+            catch (Exception exception)
 			{
 				OnMigrationException(migration, exception);
 			}
 			DatabaseStatus.CompleteMigration(appliedMigration);
 		}
 
-	    void OnMigrationException(Migration migration, Exception exception)
+	    void OnMigrationException(IMigration migration, Exception exception)
 		{
 			var message = new
 				{
@@ -99,5 +100,28 @@ namespace MongoMigrations
 
 			ApplyMigrations(migrations);
 		}
-	}
+
+	    public bool ConfigureIf<TFeature>(IMigration migration, Action<TFeature> action) where TFeature: IMigrationProperty
+	    {
+	        if (!(migration is TFeature tFeature))
+	        {
+	            return false;
+	        }
+
+	        action?.Invoke(tFeature);
+	        return true;
+	    }
+
+	    public bool InvokeIf<TFeature>(IMigration migration, Action<TFeature> action) where TFeature: IMigrationInvokable
+	    {
+	        if (!(migration is TFeature tFeature))
+	        {
+	            return false;
+	        }
+
+	        action?.Invoke(tFeature);
+	        return true;
+	    }
+
+    }
 }

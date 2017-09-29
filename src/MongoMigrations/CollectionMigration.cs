@@ -7,26 +7,53 @@ namespace MongoMigrations
 	using MongoDB.Bson;
 	using MongoDB.Driver;
 
-	public abstract class CollectionMigration : Migration
-	{
-		protected string CollectionName;
-	    protected int BatchSize = 1000;
+    public interface ICollectionMigration : ISupportFilter, ISupportOnBeforeMigration, ISupportOnAfterSuccessfullMigration, ISupportBatchSize
+    {
+        IMongoCollection<BsonDocument> Collection { get; }
+        string CollectionName { get; }
+    }
 
-		public CollectionMigration(MigrationVersion version, string collectionName) : base(version)
+	public abstract class CollectionMigration : Migration, ICollectionMigration
+    {
+        public IMongoCollection<BsonDocument> Collection { get; set; }
+        public string CollectionName { get; }
+        public int BatchSize { get; set; } = 1000;
+        public FilterDefinition<BsonDocument> Filter { get; set; } = FilterDefinition<BsonDocument>.Empty;
+
+        public CollectionMigration(MigrationVersion version, string collectionName) : base(version)
 		{
-			CollectionName = collectionName;
+		    if (string.IsNullOrWhiteSpace(collectionName)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(collectionName));
+		    CollectionName = collectionName;
+		    Version = version;
 		}
 
-		public override void Update()
-		{
+	    /// <summary>
+	    /// Invoked before `Update`
+	    /// </summary>
+	    public virtual void OnBeforeMigration()
+	    {
+
+	    }
+
+	    /// <summary>
+	    /// Invoke after `Update`
+	    /// </summary>
+	    public virtual void OnAfterSuccessfulMigration()
+	    {
+
+	    }
+
+        public override void Update()
+        {
+            Collection = Database.GetCollection<BsonDocument>(CollectionName);
+
 		    var skip = 0;
 		    while (true)
 		    {
-                var collection = GetCollection();
-                var documents = GetDocuments(collection, skip);
+                var documents = GetDocuments(skip);
 		        if (documents.Any())
 		        {
-		            UpdateDocuments(collection, documents);
+		            UpdateDocuments(documents);
 		            skip += documents.Count;
 		        }
 		        else
@@ -36,13 +63,13 @@ namespace MongoMigrations
 		    }
 		}
 
-		public virtual void UpdateDocuments(IMongoCollection<BsonDocument> collection, List<BsonDocument> documents)
+		public virtual void UpdateDocuments(List<BsonDocument> documents)
 		{
 			foreach (var document in documents)
 			{
 			    try
 			    {
-			        UpdateDocument(collection, document);
+			        UpdateDocument(document);
 			    }
 				catch (MongoException exception)
 				{
@@ -65,18 +92,18 @@ namespace MongoMigrations
 			throw new MigrationException(message.ToString(), exception);
 		}
 
-		public abstract void UpdateDocument(IMongoCollection<BsonDocument> collection, BsonDocument document);
+		public abstract void UpdateDocument(BsonDocument document);
 
-		protected virtual IMongoCollection<BsonDocument> GetCollection()
+		protected virtual List<BsonDocument> GetDocuments(int skip = 0)
 		{
-			return Database.GetCollection<BsonDocument>(CollectionName);
-		}
+		    if (BatchSize <= 0)
+		    {
+		        throw new ArgumentOutOfRangeException(nameof(BatchSize), "Must be greater than zero.");
+		    }
 
-		protected virtual List<BsonDocument> GetDocuments(IMongoCollection<BsonDocument> collection, int skip = 0)
-		{		    
 		    var cursor = Filter != null ? 
-                collection.Find(Filter) : 
-                collection.Find(FilterDefinition<BsonDocument>.Empty);
+                Collection.Find(Filter) : 
+                Collection.Find(FilterDefinition<BsonDocument>.Empty);
 
             cursor
                 .Skip(skip)
@@ -84,5 +111,6 @@ namespace MongoMigrations
 
 		    return cursor.ToList();
 		}
-	}
+
+    }
 }
