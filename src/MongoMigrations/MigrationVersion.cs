@@ -20,7 +20,7 @@ namespace MongoMigrations
 
         public MigrationVersion(string version)
         {
-            var versionParts = version.Split('.');
+            var versionParts = version?.Split('.') ?? new string[] {};
             if (versionParts.Length != 3)
                 throw new ArgumentException("Versions must have format: major.minor.revision, this doesn't match: " + version);
             var majorString = versionParts[0];
