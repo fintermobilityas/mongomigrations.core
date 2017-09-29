@@ -11,7 +11,7 @@ namespace MongoMigrations
         /// <returns></returns>
         public static MigrationVersion Default()
         {
-            return default;
+            return new MigrationVersion(0);
         }
 
         public readonly int Major;
