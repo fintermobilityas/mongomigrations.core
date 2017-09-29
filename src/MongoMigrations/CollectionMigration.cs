@@ -17,11 +17,6 @@ namespace MongoMigrations
 			CollectionName = collectionName;
 		}
 
-		public virtual FilterDefinition<BsonDocument> Filter()
-		{
-			return null;
-		}
-
 		public override void Update()
 		{
 		    var skip = 0;
@@ -78,11 +73,9 @@ namespace MongoMigrations
 		}
 
 		protected virtual List<BsonDocument> GetDocuments(IMongoCollection<BsonDocument> collection, int skip = 0)
-		{
-		    var filter = Filter();
-
-		    var cursor = filter != null ? 
-                collection.Find(filter) : 
+		{		    
+		    var cursor = Filter != null ? 
+                collection.Find(Filter) : 
                 collection.Find(FilterDefinition<BsonDocument>.Empty);
 
             cursor

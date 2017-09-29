@@ -64,7 +64,9 @@ namespace MongoMigrations
 			migration.Database = Database;
 			try
 			{
+                migration.OnBeforeMigration();
 				migration.Update();
+                migration.OnAfterSuccessfulMigration();
 			}
 			catch (Exception exception)
 			{
