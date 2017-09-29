@@ -4,9 +4,9 @@
     <RootNamespace>MongoMigrations</RootNamespace>
     <AssemblyName>MongoMigrations</AssemblyName>
 	<TargetFrameworks>netcoreapp2.0;netstandard2.0;net462;net47</TargetFrameworks>
-    <Version>2.4.4-1</Version>
-    <AssemblyVersion>2.4.4.1</AssemblyVersion>
-	<FileVersion>2.4.4.1</FileVersion>
+    <Version>6</Version>
+    <AssemblyVersion>6.0.0.0</AssemblyVersion>
+	<FileVersion>6.0.0.0</FileVersion>
 	<LangVersion>latest</LangVersion>
 	<Authors>YouPark AS</Authors>
 	<Company>YouPark AS</Company>
