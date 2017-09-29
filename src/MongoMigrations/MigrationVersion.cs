@@ -109,11 +109,6 @@ namespace MongoMigrations
             return $"{Major}.{Minor}.{Revision}";
         }
 
-        public static implicit operator MigrationVersion(string version)
-        {
-            return new MigrationVersion(version);
-        }
-
         public static implicit operator string(MigrationVersion version)
         {
             return version.ToString();
