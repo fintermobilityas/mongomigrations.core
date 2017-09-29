@@ -28,4 +28,13 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
   </ItemGroup>
+    <!-- https://github.com/ctaggart/SourceLink -->
+    <PropertyGroup>
+        <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);IncludePDBsInPackage</TargetsForTfmSpecificContentInPackage>
+    </PropertyGroup>
+    <Target Name="IncludePDBsInPackage" Condition="'$(TargetFramework)' != 'netcoreapp2.0' AND '$(IncludeBuildOutput)' != 'false'">
+        <ItemGroup>
+            <TfmSpecificPackageFile Include="$(OutputPath)\$(AssemblyName).pdb" PackagePath="lib/$(TargetFramework)" />
+        </ItemGroup>
+    </Target>
 </Project>
