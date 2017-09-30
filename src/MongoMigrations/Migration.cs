@@ -50,8 +50,6 @@ namespace MongoMigrations
     {
         protected Migration(MigrationVersion version)
         {
-            if (version == null)
-                throw new ArgumentNullException(nameof(version));
             Version = version;
         }
 
