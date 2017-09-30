@@ -5,9 +5,9 @@
         <RootNamespace>MongoMigrations</RootNamespace>
         <AssemblyName>MongoMigrations</AssemblyName>
         <TargetFrameworks>netcoreapp2.0;netstandard2.0;net47</TargetFrameworks>
-        <Version>85.0.0</Version>
-        <AssemblyVersion>85.0.0.0</AssemblyVersion>
-        <FileVersion>85.0.0.0</FileVersion>
+        <Version>51.0.0</Version>
+        <AssemblyVersion>51.0.0.0</AssemblyVersion>
+        <FileVersion>51.0.0.0</FileVersion>
         <LangVersion>latest</LangVersion>
         <Authors>YouPark AS</Authors>
         <Company>YouPark AS</Company>
@@ -30,24 +30,11 @@
         <PackageReference Include="MongoDB.Driver.Core" Version="2.4.4" />
         <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
         <PackageReference Include="SourceLink.Embed.AllSourceFiles" Version="2.4.0" PrivateAssets="all" />
-        <PackageReference Include="MSBump" Version="2.3.0" PrivateAssets="all" />
     </ItemGroup>
     <ItemGroup Condition="'$(TargetFramework)' == 'net47'">
         <Reference Include="System" />
         <Reference Include="System.Core" />
     </ItemGroup>
-    <PropertyGroup Condition=" '$(Configuration)'=='Debug' ">
-        <ResetMinor>True</ResetMinor>
-        <ResetPatch>True</ResetPatch>
-        <BumpLabel></BumpLabel>
-        <BumpRevision>True</BumpRevision>
-    </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)'=='Release' ">
-        <ResetMinor>True</ResetMinor>
-        <ResetPatch>True</ResetPatch>
-        <ResetRevision>True</ResetRevision>
-        <BumpMajor>True</BumpMajor>
-    </PropertyGroup>
     <!-- https://github.com/ctaggart/SourceLink -->
     <PropertyGroup>
         <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);IncludePDBsInPackage</TargetsForTfmSpecificContentInPackage>
