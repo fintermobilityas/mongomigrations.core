@@ -14,13 +14,21 @@ namespace MongoMigrations
         readonly BsonDocument _document;
 
         [UsedImplicitly] public FilterDefinition<BsonDocument> ByIdFilter { get; }
+    public sealed class MigrationForEachDocument
+    {
+        [UsedImplicitly] public FilterDefinition<BsonDocument> ByIdFilter { get; set; }
         [UsedImplicitly] public string Name { get; }
+        [UsedImplicitly] public IEnumerable<BsonDocument> Documents { get; }
+        [UsedImplicitly] public int Index { get; }
+        [UsedImplicitly] public BsonDocument Current { get; }
 
-        public MigrationForEachDocument(string name, [NotNull] BsonDocument document)
+        public MigrationForEachDocument([NotNull] string name, IEnumerable<BsonDocument> documents, int index, [NotNull] BsonDocument current)
         {
-            _document = document ?? throw new ArgumentNullException(nameof(document));
-            Name = name;
-            ByIdFilter = Builders<BsonDocument>.Filter.ElemMatch(name, Builders<BsonDocument>.Filter.Eq("_id", document["_id"]));
+            Documents = documents ?? throw new ArgumentNullException(nameof(documents));
+            Name = name ?? throw new ArgumentNullException(nameof(name));
+            Index = index < 0 ? throw new ArgumentOutOfRangeException(nameof(index)) : index;
+            Current = current ?? throw new ArgumentNullException(nameof(current));
+            ByIdFilter = Builders<BsonDocument>.Filter.ElemMatch(name, Builders<BsonDocument>.Filter.Eq("_id", current["_id"]));
         }
 
         [UsedImplicitly]
@@ -80,7 +88,7 @@ namespace MongoMigrations
 
         public static explicit operator BsonDocument(MigrationForEachDocument document)
         {
-            return document._document;
+            return document.Current;
         }
     }
 
@@ -96,7 +104,7 @@ namespace MongoMigrations
         }
 
         [UsedImplicitly]
-        public IEnumerable<IWriteModel> ForEach([NotNull] Func<(IEnumerable<BsonDocument> documents, int index, BsonDocument current, MigrationForEachDocument apply), IWriteModel> enumeratorFunc)
+        public IEnumerable<IWriteModel> ForEach([NotNull] Func<MigrationForEachDocument, IWriteModel> enumeratorFunc)
         {
             if (enumeratorFunc == null) throw new ArgumentNullException(nameof(enumeratorFunc));
 
@@ -105,7 +113,7 @@ namespace MongoMigrations
             var subDocuments = _bsonArray.Select(x => x.AsBsonDocument).ToList();
             foreach (var document in subDocuments)
             {
-                var writeModel = enumeratorFunc((subDocuments, index++, document, new MigrationForEachDocument(_name, document)));
+                var writeModel = enumeratorFunc(new MigrationForEachDocument(_name, subDocuments, index++, document));
                 if (writeModel is BreakWriteModel)
                 {
                     break;
