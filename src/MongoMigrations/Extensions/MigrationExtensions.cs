@@ -11,7 +11,7 @@ namespace MongoMigrations.Extensions
     [UsedImplicitly]
     public static class MigrationExtensions
     {
-        public static IEnumerable<IWriteModel> AsEnumerable(this WriteModel<BsonDocument> writeModel)
+        internal static IEnumerable<IWriteModel> AsEnumerable(this WriteModel<BsonDocument> writeModel)
         {
             return new List<IWriteModel> { new WriteModel(writeModel) };
         }
