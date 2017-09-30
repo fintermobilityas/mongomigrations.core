@@ -128,11 +128,7 @@ namespace MongoMigrations
         [UsedImplicitly] public BsonDocument Document { get; }
 
         [UsedImplicitly]
-        public BsonValue this[string name]
-        {
-            get => Document[name];
-            set => Document[name] = value;
-        }
+        public BsonValue this[string name] => Document[name];
 
         public MigrationRootDocument([NotNull] BsonDocument document)
         {
