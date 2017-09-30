@@ -22,6 +22,9 @@ namespace MongoMigrations
         [UsedImplicitly] public int Index { get; }
         [UsedImplicitly] public BsonDocument Current { get; }
 
+        [UsedImplicitly]
+        public BsonValue this[string name] => Current[name];
+
         public MigrationForEachDocument([NotNull] string name, IEnumerable<BsonDocument> documents, int index, [NotNull] BsonDocument current)
         {
             Documents = documents ?? throw new ArgumentNullException(nameof(documents));
