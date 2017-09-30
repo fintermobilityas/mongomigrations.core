@@ -1,4 +1,5 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>Library</OutputType>
         <RootNamespace>MongoMigrations</RootNamespace>
@@ -17,6 +18,7 @@
         <PackageProjectUrl>https://github.com/youpark/youparkas.common.infrastructure</PackageProjectUrl>
         <RepositoryUrl>https://github.com/youpark/youparkas.common.infrastructure</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
+        <PackageOutputPath>C:\nupkgs</PackageOutputPath>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='netcoreapp2.0|AnyCPU'">
         <DebugType>embedded</DebugType>
@@ -28,11 +30,24 @@
         <PackageReference Include="MongoDB.Driver.Core" Version="2.4.4" />
         <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
         <PackageReference Include="SourceLink.Embed.AllSourceFiles" Version="2.4.0" PrivateAssets="all" />
+        <PackageReference Include="MSBump" Version="2.3.0" PrivateAssets="all" />
     </ItemGroup>
     <ItemGroup Condition="'$(TargetFramework)' == 'net47'">
         <Reference Include="System" />
         <Reference Include="System.Core" />
     </ItemGroup>
+    <PropertyGroup Condition=" '$(Configuration)'=='Debug' ">
+        <ResetMinor>True</ResetMinor>
+        <ResetPatch>True</ResetPatch>
+        <BumpLabel></BumpLabel>
+        <BumpRevision>True</BumpRevision>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)'=='Release' ">
+        <ResetMinor>True</ResetMinor>
+        <ResetPatch>True</ResetPatch>
+        <ResetRevision>True</ResetRevision>
+        <BumpMajor>True</BumpMajor>
+    </PropertyGroup>
     <!-- https://github.com/ctaggart/SourceLink -->
     <PropertyGroup>
         <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);IncludePDBsInPackage</TargetsForTfmSpecificContentInPackage>

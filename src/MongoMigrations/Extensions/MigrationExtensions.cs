@@ -4,7 +4,10 @@ using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
+using MongoMigrations.Documents;
+using MongoMigrations.WriteModels;
 
 namespace MongoMigrations.Extensions
 {
@@ -17,27 +20,79 @@ namespace MongoMigrations.Extensions
         }
 
         [UsedImplicitly]
-        public static bool TryGetElement(this MigrationRootDocument rootDocument, string name, out BsonElement value)
+        public static BsonDocument ToUpdateDefinitionBsonDocument<TDocument>([NotNull] this UpdateDefinition<TDocument> updateDefinition)
         {
-            return rootDocument.Document.TryGetElement(name, out value);
+            if (updateDefinition == null) throw new ArgumentNullException(nameof(updateDefinition));
+            var documentSerializer = BsonSerializer.SerializerRegistry.GetSerializer<TDocument>();
+            var renderedFilter = updateDefinition.Render(documentSerializer, BsonSerializer.SerializerRegistry);
+            return renderedFilter;
         }
 
         [UsedImplicitly]
-        public static bool TryGetValue(this MigrationRootDocument rootDocument, string name, out BsonValue value)
+        public static BsonDocument ToFilterDefinitionBsonDocument<TDocument>([NotNull] this FilterDefinition<TDocument> filterDefinition)
         {
-            return rootDocument.Document.TryGetValue(name, out value);
+            if (filterDefinition == null) throw new ArgumentNullException(nameof(filterDefinition));
+            var documentSerializer = BsonSerializer.SerializerRegistry.GetSerializer<TDocument>();
+            var renderedFilter = filterDefinition.Render(documentSerializer, BsonSerializer.SerializerRegistry);
+            return renderedFilter;
+        }
+
+        public static BsonDocument ToWriteModelBsonDocument<TDocument>([NotNull] this WriteModel<TDocument> writeModel)
+        {
+            if (writeModel == null) throw new ArgumentNullException(nameof(writeModel));
+
+            var bsonDocument = new BsonDocument
+            {
+                { "ModelType", writeModel.ModelType }
+            };
+
+            switch (writeModel)
+            {
+                case UpdateOneModel<TDocument> updateOneModel:
+                    return bsonDocument.Merge(new BsonDocument
+                    {
+                        { "Filter", updateOneModel.Filter.ToFilterDefinitionBsonDocument() },
+                        { "Update", updateOneModel.Update.ToUpdateDefinitionBsonDocument() },
+                        { "IsUpsert", updateOneModel.IsUpsert },
+                        //{ "Collation", updateOneModel.Collation.ToBsonDocument() }
+                    });
+                case UpdateManyModel<TDocument> updateManyModel:
+                    return bsonDocument.Merge(new BsonDocument
+                    {
+                        { "Filter", updateManyModel.Filter.ToFilterDefinitionBsonDocument() },
+                        { "Update", updateManyModel.Update.ToUpdateDefinitionBsonDocument() },
+                        { "IsUpsert", updateManyModel.IsUpsert },
+                        //{ "Collation", updateManyModel.Collation.ToBsonDocument() }
+                    });
+                case DeleteOneModel<TDocument> deleteOneModel:
+                    return bsonDocument.Merge(new BsonDocument
+                    {
+                        { "Filter", deleteOneModel.Filter.ToFilterDefinitionBsonDocument() },
+                        //{ "Collation", deleteOneModel.Collation.ToBsonDocument() }
+                    });
+                case DeleteManyModel<TDocument> deleteManyModel:
+                    return bsonDocument.Merge(new BsonDocument
+                    {
+                        { "Filter", deleteManyModel.Filter.ToFilterDefinitionBsonDocument() },
+                        //{ "Collation", deleteManyModel.Collation.ToBsonDocument() }
+                    });
+                case ReplaceOneModel<TDocument> replaceOneModel:
+                    return bsonDocument.Merge(new BsonDocument
+                    {
+                        { "Filter", replaceOneModel.Filter.ToFilterDefinitionBsonDocument() },
+                        { "Replacement", replaceOneModel.Replacement.ToBsonDocument() },
+                        { "IsUpsert", replaceOneModel.IsUpsert },
+                        //{ "Collation", replaceOneModel.Collation.ToBsonDocument() }
+                    });
+            }
+
+            return null;            
         }
 
         [UsedImplicitly]
-        public static string ToString(this MigrationRootDocument rootDocument)
+        public static bool IsTypeOf(this MigrationDocument document, [NotNull] string typeName)
         {
-            return rootDocument.Document.ToString();
-        }
-
-        [UsedImplicitly]
-        public static bool IsTypeOf(this MigrationRootDocument rootDocument, [NotNull] string typeName)
-        {
-           return rootDocument.Document.IsTypeOf(typeName);
+           return document.BsonDocument.IsTypeOf(typeName);
         }
 
         [UsedImplicitly]
@@ -69,7 +124,7 @@ namespace MongoMigrations.Extensions
 
             if (!document.TryGetValue("_t", out var value))
             {
-                throw new KeyNotFoundException($"Document does not contain key: _t`{typeName}");
+                throw new KeyNotFoundException($"BsonDocument does not contain key: _t`{typeName}");
             }
 
             if (value.BsonType != BsonType.Array)

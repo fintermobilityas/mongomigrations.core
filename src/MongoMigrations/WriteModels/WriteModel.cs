@@ -3,14 +3,14 @@ using JetBrains.Annotations;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
-namespace MongoMigrations
+namespace MongoMigrations.WriteModels
 {
     public interface IWriteModel
     {
         WriteModel<BsonDocument> Model { get; }
     }
 
-    internal class WriteModel : IWriteModel
+    public class WriteModel : IWriteModel
     {
         public WriteModel<BsonDocument> Model { get; }
 
@@ -18,15 +18,5 @@ namespace MongoMigrations
         {
             Model = model ?? throw new ArgumentNullException(nameof(model));
         }
-    }
-
-    internal class DoNotApplyWriteModel : IWriteModel
-    {
-        public WriteModel<BsonDocument> Model => throw new NotSupportedException($"{GetType().FullName} is not writable model.");
-    }
-
-    internal sealed class BreakWriteModel : DoNotApplyWriteModel
-    {
-
     }
 }

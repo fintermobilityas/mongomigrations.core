@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using JetBrains.Annotations;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoMigrations.Documents;
 using MongoMigrations.Extensions;
+using MongoMigrations.WriteModels;
 using MoreLinq;
 
 namespace MongoMigrations
@@ -17,6 +20,7 @@ namespace MongoMigrations
         string CollectionName { get; }
     }
 
+    [DebuggerDisplay("Collection name: {CollectionName}. Batch size: {BatchSize}.")]
     [UsedImplicitly]
     public abstract class CollectionMigration : Migration, ICollectionMigration
     {
@@ -27,6 +31,11 @@ namespace MongoMigrations
             Version = version;
         }
 
+        public CollectionMigration(int major, string collectionName) : this(new MigrationVersion(major), collectionName)
+        {
+            
+        }
+
         public IMongoCollection<BsonDocument> Collection { get; [UsedImplicitly] set; }
         public string CollectionName { get; }
         public int BatchSize { get; set; } = 1000;
@@ -34,7 +43,7 @@ namespace MongoMigrations
         public ProjectionDefinition<BsonDocument> Project { get; set; } 
 
         [UsedImplicitly]
-        [NotNull] public abstract IEnumerable<IWriteModel> UpdateDocument(MigrationRootDocument rootDocument);
+        [NotNull] public abstract IEnumerable<IWriteModel> UpdateDocument(MigrationDocument document);
 
         /// <summary>
         ///     Invoked before `Update`
@@ -111,7 +120,7 @@ namespace MongoMigrations
             {
                 try
                 {
-                    writeModels.AddRange(UpdateDocument(new MigrationRootDocument(document)).Where(writeModel =>
+                    writeModels.AddRange(UpdateDocument(new MigrationDocument(document)).Where(writeModel =>
                     {
                         if (writeModel == null)
                         {

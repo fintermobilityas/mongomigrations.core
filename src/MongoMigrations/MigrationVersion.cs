@@ -37,6 +37,9 @@ namespace MongoMigrations
         [UsedImplicitly]
         public MigrationVersion(int major, int minor = 0, int revision = 0)
         {
+            if (major < 0) throw new ArgumentOutOfRangeException(nameof(major));
+            if (revision < 0) throw new ArgumentOutOfRangeException(nameof(revision));
+            if (minor < 0) throw new ArgumentOutOfRangeException(nameof(minor));
             Major = major;
             Minor = minor;
             Revision = revision;
