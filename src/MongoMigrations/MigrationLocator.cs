@@ -12,11 +12,6 @@ namespace MongoMigrations
 
         [UsedImplicitly] public List<MigrationFilter> MigrationFilters = new List<MigrationFilter>();
 
-        public MigrationLocator()
-        {
-            MigrationFilters.Add(new ExcludeExperimentalMigrations());
-        }
-
         [UsedImplicitly]
         public void LookForMigrationsInAssemblyOfType<T>()
         {

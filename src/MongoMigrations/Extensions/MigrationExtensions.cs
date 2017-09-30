@@ -6,11 +6,40 @@ using JetBrains.Annotations;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
-namespace MongoMigrations
+namespace MongoMigrations.Extensions
 {
     [UsedImplicitly]
     public static class MigrationExtensions
     {
+        public static IEnumerable<IWriteModel> AsEnumerable(this WriteModel<BsonDocument> writeModel)
+        {
+            return new List<IWriteModel> { new WriteModel(writeModel) };
+        }
+
+        [UsedImplicitly]
+        public static bool TryGetElement(this MigrationRootDocument rootDocument, string name, out BsonElement value)
+        {
+            return rootDocument.Document.TryGetElement(name, out value);
+        }
+
+        [UsedImplicitly]
+        public static bool TryGetValue(this MigrationRootDocument rootDocument, string name, out BsonValue value)
+        {
+            return rootDocument.Document.TryGetValue(name, out value);
+        }
+
+        [UsedImplicitly]
+        public static string ToString(this MigrationRootDocument rootDocument)
+        {
+            return rootDocument.Document.ToString();
+        }
+
+        [UsedImplicitly]
+        public static bool IsTypeOf(this MigrationRootDocument rootDocument, [NotNull] string typeName)
+        {
+           return rootDocument.Document.IsTypeOf(typeName);
+        }
+
         [UsedImplicitly]
         public static bool IsDbUpToDate(this IMongoDatabase db, Assembly migrationsAssembly, out MigrationVersion current)
         {
@@ -102,6 +131,35 @@ namespace MongoMigrations
                     yield return document;
                 }
             }
+        }
+
+        /// <summary>
+        ///     Rename all instances of a name in a bson document to the new name.
+        /// </summary>
+        [UsedImplicitly]
+        public static void ChangeName(this BsonDocument bsonDocument, string originalName, string newName)
+        {
+            var elements = bsonDocument.Elements
+                .Where(e => e.Name == originalName)
+                .ToList();
+            foreach (var element in elements)
+            {
+                bsonDocument.RemoveElement(element);
+                bsonDocument.Add(new BsonElement(newName, element.Value));
+            }
+        }
+
+        public static object TryGetDocumentId(this BsonDocument bsonDocument)
+        {
+            bsonDocument.TryGetValue("_id", out var id);
+            return id ?? "Cannot find id";
+        }
+
+        [UsedImplicitly]
+        public static void Save(this IMongoCollection<BsonDocument> collection, BsonDocument bsonDocument, string id = "_id")
+        {
+            var documentId = bsonDocument.GetValue(id);
+            collection.ReplaceOne(Builders<BsonDocument>.Filter.Eq(x => x[id], documentId), bsonDocument);
         }
     }
 }

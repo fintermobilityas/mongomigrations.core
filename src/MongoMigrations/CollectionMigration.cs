@@ -4,6 +4,8 @@ using System.Linq;
 using JetBrains.Annotations;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoMigrations.Extensions;
+using MoreLinq;
 
 namespace MongoMigrations
 {
@@ -30,6 +32,9 @@ namespace MongoMigrations
         public int BatchSize { get; set; } = 1000;
         public FilterDefinition<BsonDocument> Filter { get; set; } = FilterDefinition<BsonDocument>.Empty;
 
+        [UsedImplicitly]
+        [NotNull] public abstract IEnumerable<IWriteModel> UpdateDocument(MigrationRootDocument rootDocument);
+
         /// <summary>
         ///     Invoked before `Update`
         /// </summary>
@@ -48,37 +53,82 @@ namespace MongoMigrations
         {
             Collection = Database.GetCollection<BsonDocument>(CollectionName);
 
+            var buffer = new List<IWriteModel>();
             var skip = 0;
+
+            void Flush()
+            {
+                foreach (var batch in buffer.Batch(BatchSize))
+                {
+                    Collection.BulkWrite(batch.Select(x => x.Model));
+                }
+
+                buffer.Clear();
+            }
+
             while (true)
             {
                 var documents = GetDocuments(skip);
                 if (documents.Any())
                 {
-                    UpdateDocuments(documents);
+                    try
+                    {
+                        buffer.AddRange(UpdateDocuments(documents));
+
+                        if (buffer.Count >= BatchSize)
+                        {
+                            Flush();
+                        }
+                    }
+                    catch (Exception exception)
+                    {
+                        ThrowErrorUpdatingDocuments(exception);
+                    }
+
                     skip += documents.Count;
+                    continue;
                 }
-                else
+
+                try
                 {
-                    break;
+                    Flush();
                 }
+                catch (Exception exception)
+                {
+                    ThrowErrorUpdatingDocuments(exception);
+                }
+
+                break;
             }
         }
 
         [UsedImplicitly]
-        public virtual void UpdateDocuments(IEnumerable<BsonDocument> documents)
+        IEnumerable<IWriteModel> UpdateDocuments(IEnumerable<BsonDocument> documents)
         {
+            var writeModels = new List<IWriteModel>();
             foreach (var document in documents)
+            {
                 try
                 {
-                    UpdateDocument(document);
+                    writeModels.AddRange(UpdateDocument(new MigrationRootDocument(document)).Where(writeModel =>
+                    {
+                        if (writeModel == null)
+                        {
+                            throw new ArgumentNullException(nameof(writeModel), $"Illegal return value. Cannot return a {nameof(IWriteModel)} of type null from method {nameof(UpdateDocument)}.");
+                        }
+
+                        return !(writeModel is DoNotApplyWriteModel);
+                    }));
                 }
                 catch (MongoException exception)
                 {
-                    OnErrorUpdatingDocument(document, exception);
+                    ThrowErrorUpdatingDocument(document, exception);
                 }
+            }
+            return writeModels;
         }
 
-        protected virtual void OnErrorUpdatingDocument(BsonDocument document, Exception exception)
+        void ThrowErrorUpdatingDocument(BsonDocument document, Exception exception)
         {
             var message =
                 new
@@ -89,13 +139,25 @@ namespace MongoMigrations
                     MigrationVersion = Version,
                     MigrationDescription = Description
                 };
+
             throw new MigrationException(message.ToString(), exception);
         }
 
-        [UsedImplicitly]
-        public abstract void UpdateDocument(BsonDocument document);
+        void ThrowErrorUpdatingDocuments(Exception exception)
+        {
+            var message =
+                new
+                {
+                    Message = "Failed to update documents",
+                    CollectionName,
+                    MigrationVersion = Version,
+                    MigrationDescription = Description
+                };
 
-        protected virtual List<BsonDocument> GetDocuments(int skip = 0)
+            throw new MigrationException(message.ToString(), exception);
+        }
+
+        List<BsonDocument> GetDocuments(int skip = 0)
         {
             if (BatchSize <= 0)
                 throw new ArgumentOutOfRangeException(nameof(BatchSize), "Must be greater than zero.");

@@ -1,33 +1,38 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <RootNamespace>MongoMigrations</RootNamespace>
-    <AssemblyName>MongoMigrations</AssemblyName>
-	<TargetFrameworks>netcoreapp2.0;netstandard2.0;net462;net47</TargetFrameworks>
-    <Version>6</Version>
-    <AssemblyVersion>6.0.0.0</AssemblyVersion>
-	<FileVersion>6.0.0.0</FileVersion>
-	<LangVersion>latest</LangVersion>
-	<Authors>YouPark AS</Authors>
-	<Company>YouPark AS</Company>
-	<Copyright>YouPark AS</Copyright>
-    <Description>Mongo migrations for dot net developers</Description>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-	<PackageLicenseUrl>https://github.com/youpark/youparkas.common.infrastructure</PackageLicenseUrl>
-	<PackageProjectUrl>https://github.com/youpark/youparkas.common.infrastructure</PackageProjectUrl>
-	<RepositoryUrl>https://github.com/youpark/youparkas.common.infrastructure</RepositoryUrl>
-	<RepositoryType>git</RepositoryType>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="MongoDB.Bson" Version="2.4.4" />
-    <PackageReference Include="MongoDB.Driver" Version="2.4.4" />
-    <PackageReference Include="MongoDB.Driver.Core" Version="2.4.4" />
-    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'net462' or '$(TargetFramework)' == 'net47'">
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-  </ItemGroup>
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+        <RootNamespace>MongoMigrations</RootNamespace>
+        <AssemblyName>MongoMigrations</AssemblyName>
+        <TargetFrameworks>netcoreapp2.0;netstandard2.0;net47</TargetFrameworks>
+        <Version>50</Version>
+        <AssemblyVersion>50.0.0.0</AssemblyVersion>
+        <FileVersion>50.0.0.0</FileVersion>
+        <LangVersion>latest</LangVersion>
+        <Authors>YouPark AS</Authors>
+        <Company>YouPark AS</Company>
+        <Copyright>YouPark AS</Copyright>
+        <Description>Mongo migrations for dot net developers</Description>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageLicenseUrl>https://github.com/youpark/youparkas.common.infrastructure</PackageLicenseUrl>
+        <PackageProjectUrl>https://github.com/youpark/youparkas.common.infrastructure</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/youpark/youparkas.common.infrastructure</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='netcoreapp2.0|AnyCPU'">
+        <DebugType>embedded</DebugType>
+        <DebugSymbols>true</DebugSymbols>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="MongoDB.Bson" Version="2.4.4" />
+        <PackageReference Include="MongoDB.Driver" Version="2.4.4" />
+        <PackageReference Include="MongoDB.Driver.Core" Version="2.4.4" />
+        <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
+        <PackageReference Include="SourceLink.Embed.AllSourceFiles" Version="2.4.0" PrivateAssets="all" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(TargetFramework)' == 'net47'">
+        <Reference Include="System" />
+        <Reference Include="System.Core" />
+    </ItemGroup>
     <!-- https://github.com/ctaggart/SourceLink -->
     <PropertyGroup>
         <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);IncludePDBsInPackage</TargetsForTfmSpecificContentInPackage>
