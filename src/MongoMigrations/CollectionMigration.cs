@@ -9,7 +9,7 @@ using MoreLinq;
 
 namespace MongoMigrations
 {
-    public interface ICollectionMigration : ISupportFilter, ISupportOnBeforeMigration, ISupportOnAfterSuccessfullMigration, ISupportBatchSize
+    public interface ICollectionMigration : ISupportFilter, ISupportOnBeforeMigration, ISupportOnAfterSuccessfullMigration, ISupportBatchSize, ISupportProjection
     {
         [UsedImplicitly]
         IMongoCollection<BsonDocument> Collection { get; }
@@ -31,6 +31,7 @@ namespace MongoMigrations
         public string CollectionName { get; }
         public int BatchSize { get; set; } = 1000;
         public FilterDefinition<BsonDocument> Filter { get; set; } = FilterDefinition<BsonDocument>.Empty;
+        public ProjectionDefinition<BsonDocument> Projection { get; set; } 
 
         [UsedImplicitly]
         [NotNull] public abstract IEnumerable<IWriteModel> UpdateDocument(MigrationRootDocument rootDocument);
@@ -168,7 +169,13 @@ namespace MongoMigrations
                 .Skip(skip)
                 .Limit(BatchSize);
 
+            if (Projection != null)
+            {
+                cursor.Project(Projection);
+            }
+
             return cursor.ToList();
         }
+
     }
 }

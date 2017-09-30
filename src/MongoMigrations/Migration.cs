@@ -31,6 +31,11 @@ namespace MongoMigrations
         [UsedImplicitly] int BatchSize { get; set; }
     }
 
+    public interface ISupportProjection : IMigrationProperty
+    {
+        ProjectionDefinition<BsonDocument> Projection { get; }
+    }
+
     public interface ISupportOnBeforeMigration : IMigrationInvokable
     {
         void OnBeforeMigration();
