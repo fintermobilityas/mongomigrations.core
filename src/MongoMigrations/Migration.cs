@@ -1,4 +1,3 @@
-using System;
 using JetBrains.Annotations;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -33,7 +32,8 @@ namespace MongoMigrations
 
     public interface ISupportProjection : IMigrationProperty
     {
-        ProjectionDefinition<BsonDocument> Projection { get; }
+        [UsedImplicitly]
+        ProjectionDefinition<BsonDocument> Project { get; set; }
     }
 
     public interface ISupportOnBeforeMigration : IMigrationInvokable

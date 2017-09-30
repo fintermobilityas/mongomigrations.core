@@ -31,7 +31,7 @@ namespace MongoMigrations
         public string CollectionName { get; }
         public int BatchSize { get; set; } = 1000;
         public FilterDefinition<BsonDocument> Filter { get; set; } = FilterDefinition<BsonDocument>.Empty;
-        public ProjectionDefinition<BsonDocument> Projection { get; set; } 
+        public ProjectionDefinition<BsonDocument> Project { get; set; } 
 
         [UsedImplicitly]
         [NotNull] public abstract IEnumerable<IWriteModel> UpdateDocument(MigrationRootDocument rootDocument);
@@ -169,9 +169,9 @@ namespace MongoMigrations
                 .Skip(skip)
                 .Limit(BatchSize);
 
-            if (Projection != null)
+            if (Project != null)
             {
-                cursor.Project(Projection);
+                cursor.Project(Project);
             }
 
             return cursor.ToList();
