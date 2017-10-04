@@ -23,7 +23,6 @@ namespace MongoMigrations.Documents
             }
             return Builders<BsonDocument>.Filter.Eq("_id", this["_id"]);
         }
-
         [UsedImplicitly]
         public BsonValue this[string name] => BsonDocument[name];
 

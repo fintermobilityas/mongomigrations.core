@@ -45,13 +45,15 @@ namespace MongoMigrations
         /// </summary>
         public virtual void OnBeforeMigration()
         {
+            
         }
 
         /// <summary>
-        ///     Invoke after `Update`
+        ///     Invoked after `Update`
         /// </summary>
         public virtual void OnAfterSuccessfulMigration()
         {
+            
         }
 
         public override void Update()
