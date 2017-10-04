@@ -24,16 +24,11 @@ namespace MongoMigrations
     [UsedImplicitly]
     public abstract class CollectionMigration : Migration, ICollectionMigration
     {
-        protected CollectionMigration(MigrationVersion version, string collectionName) : base(version)
+        // ReSharper disable once PublicConstructorInAbstractClass
+        public CollectionMigration(int major, string collectionName) : base(new MigrationVersion(major))
         {
             if (string.IsNullOrWhiteSpace(collectionName)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(collectionName));
             CollectionName = collectionName;
-            Version = version;
-        }
-
-        public CollectionMigration(int major, string collectionName) : this(new MigrationVersion(major), collectionName)
-        {
-            
         }
 
         public IMongoCollection<BsonDocument> Collection { get; [UsedImplicitly] set; }
