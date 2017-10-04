@@ -18,18 +18,24 @@ namespace MongoMigrations.Documents
         readonly List<IWriteModel> _writeModels;
         MigrationUpdateDocument _migrationUpdateDocument;
 
-        [UsedImplicitly] public FilterDefinition<BsonDocument> ByIdFilter { get; }
         [UsedImplicitly] public BsonDocument BsonDocument { get; }
         [UsedImplicitly] public BsonValue this[string name] => BsonDocument[name];
         [UsedImplicitly] public List<string> WriteModelsJsonDebug => WriteModelsBsonDebug.Select(x => x?.ToJson(new JsonWriterSettings { OutputMode = JsonOutputMode.Strict })).ToList();
         [UsedImplicitly] public List<BsonDocument> WriteModelsBsonDebug => this.Select(x => x.Model?.ToWriteModelBsonDocument()).ToList();
         [UsedImplicitly] public int WriteModelsCount => this.Count();
+        [UsedImplicitly] public FilterDefinition<BsonDocument> ByIdFilter()
+        {
+            if (!BsonDocument.TryGetElement("_id", out _))
+            {
+                throw new Exception($"A default _id property does not exist in current document.");
+            }
+            return Builders<BsonDocument>.Filter.Eq("_id", this["_id"]);
+        }
 
         public MigrationDocument([NotNull] BsonDocument document)
         {
             _writeModels = new List<IWriteModel>();
             BsonDocument = document ?? throw new ArgumentNullException(nameof(document));
-            ByIdFilter = Builders<BsonDocument>.Filter.Eq("_id", this["_id"]);
         }
 
         [UsedImplicitly]
@@ -57,7 +63,7 @@ namespace MongoMigrations.Documents
         {
             if (_migrationUpdateDocument == null)
             {
-                _migrationUpdateDocument = new MigrationUpdateDocument(ByIdFilter, builder(Builders<BsonDocument>.Update));
+                _migrationUpdateDocument = new MigrationUpdateDocument(ByIdFilter(), builder(Builders<BsonDocument>.Update));
                 return;
             }
 
@@ -99,14 +105,14 @@ namespace MongoMigrations.Documents
         public IEnumerable<IWriteModel> Update([NotNull] BsonDocument document)
         {
             if (document == null) throw new ArgumentNullException(nameof(document));
-            return Update(ByIdFilter, document);
+            return Update(ByIdFilter(), document);
         }
 
         [UsedImplicitly]
         public IEnumerable<IWriteModel> Update([NotNull] UpdateDefinition<BsonDocument> updateDefinition)
         {
             if (updateDefinition == null) throw new ArgumentNullException(nameof(updateDefinition));
-            return Update(ByIdFilter, updateDefinition);
+            return Update(ByIdFilter(), updateDefinition);
         }
 
         [UsedImplicitly]
@@ -119,7 +125,7 @@ namespace MongoMigrations.Documents
         [UsedImplicitly]
         public IEnumerable<IWriteModel> Delete()
         {
-            return Delete(ByIdFilter);
+            return Delete(ByIdFilter());
         }
 
         [UsedImplicitly]

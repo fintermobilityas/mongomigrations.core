@@ -11,11 +11,18 @@ namespace MongoMigrations.Documents
     [DebuggerDisplay("Name: {Name}. Index: {Index}")]
     public sealed class MigrationForEachDocument
     {
-        [UsedImplicitly] public FilterDefinition<BsonDocument> ByIdFilter { get; set; }
         [UsedImplicitly] public string Name { get; }
         [UsedImplicitly] public IEnumerable<BsonDocument> BsonDocuments { get; }
         [UsedImplicitly] public int Index { get; }
         [UsedImplicitly] public BsonDocument BsonDocument { get; }
+        [UsedImplicitly] public FilterDefinition<BsonDocument> ByIdFilter()
+        {
+            if (!BsonDocument.TryGetElement("_id", out _))
+            {
+                throw new Exception($"A default _id property does not exist in current document.");
+            }
+            return Builders<BsonDocument>.Filter.Eq("_id", this["_id"]);
+        }
 
         [UsedImplicitly]
         public BsonValue this[string name] => BsonDocument[name];
@@ -26,7 +33,6 @@ namespace MongoMigrations.Documents
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Index = index < 0 ? throw new ArgumentOutOfRangeException(nameof(index)) : index;
             BsonDocument = bsonDocument ?? throw new ArgumentNullException(nameof(bsonDocument));
-            ByIdFilter = Builders<BsonDocument>.Filter.ElemMatch(name, Builders<BsonDocument>.Filter.Eq("_id", bsonDocument["_id"]));
         }
 
         [UsedImplicitly]
@@ -56,7 +62,7 @@ namespace MongoMigrations.Documents
         public IWriteModel Update([NotNull] UpdateDefinition<BsonDocument> updateDefinition)
         {
             if (updateDefinition == null) throw new ArgumentNullException(nameof(updateDefinition));
-            return Update(ByIdFilter, updateDefinition);
+            return Update(ByIdFilter(), updateDefinition);
         }
 
         [UsedImplicitly]
@@ -69,7 +75,7 @@ namespace MongoMigrations.Documents
         [UsedImplicitly]
         public IWriteModel Delete()
         {
-            return Delete(ByIdFilter);
+            return Delete(ByIdFilter());
         }
 
         [UsedImplicitly]
