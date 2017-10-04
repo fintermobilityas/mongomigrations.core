@@ -15,7 +15,7 @@ namespace MongoMigrations.Documents
         [UsedImplicitly] public IEnumerable<BsonDocument> BsonDocuments { get; }
         [UsedImplicitly] public int Index { get; }
         [UsedImplicitly] public BsonDocument BsonDocument { get; }
-        [UsedImplicitly] public FilterDefinition<BsonDocument> ByIdFilter()
+        [UsedImplicitly] public FilterDefinition<BsonDocument> ByDocumentIdFilter()
         {
             if (!BsonDocument.TryGetElement("_id", out _))
             {
@@ -61,7 +61,7 @@ namespace MongoMigrations.Documents
         public IWriteModel Update([NotNull] UpdateDefinition<BsonDocument> updateDefinition)
         {
             if (updateDefinition == null) throw new ArgumentNullException(nameof(updateDefinition));
-            return Update(ByIdFilter(), updateDefinition);
+            return Update(ByDocumentIdFilter(), updateDefinition);
         }
 
         [UsedImplicitly]
@@ -74,7 +74,7 @@ namespace MongoMigrations.Documents
         [UsedImplicitly]
         public IWriteModel Delete()
         {
-            return Delete(ByIdFilter());
+            return Delete(ByDocumentIdFilter());
         }
 
         [UsedImplicitly]
