@@ -1,3 +1,4 @@
+using System;
 using JetBrains.Annotations;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -48,13 +49,15 @@ namespace MongoMigrations
 
     public abstract class Migration : IMigration
     {
-        protected Migration(MigrationVersion version)
+        // ReSharper disable once PublicConstructorInAbstractClass
+        public Migration(int major)
         {
-            Version = version;
+            if (major < 0) throw new ArgumentOutOfRangeException(nameof(major));
+            Version = new MigrationVersion(major);
         }
 
         public IMongoDatabase Database { get; internal set; }
-        public MigrationVersion Version { get; protected set; }
+        public MigrationVersion Version { get; }
         public string Description { get; set; }
 
         public abstract void Update();

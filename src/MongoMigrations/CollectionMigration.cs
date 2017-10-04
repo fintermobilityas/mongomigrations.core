@@ -25,7 +25,7 @@ namespace MongoMigrations
     public abstract class CollectionMigration : Migration, ICollectionMigration
     {
         // ReSharper disable once PublicConstructorInAbstractClass
-        public CollectionMigration(int major, string collectionName) : base(new MigrationVersion(major))
+        public CollectionMigration(int major, string collectionName) : base(major)
         {
             if (string.IsNullOrWhiteSpace(collectionName)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(collectionName));
             CollectionName = collectionName;
