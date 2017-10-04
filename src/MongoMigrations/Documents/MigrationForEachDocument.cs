@@ -19,9 +19,9 @@ namespace MongoMigrations.Documents
         {
             if (!BsonDocument.TryGetElement("_id", out _))
             {
-                throw new Exception($"A default _id property does not exist in current document.");
+                throw new Exception("A default _id property does not exist in current document.");
             }
-            return Builders<BsonDocument>.Filter.Eq("_id", this["_id"]);
+            return Builders<BsonDocument>.Filter.Eq($"{Name}._id", this["_id"]);
         }
         [UsedImplicitly]
         public BsonValue this[string name] => BsonDocument[name];
