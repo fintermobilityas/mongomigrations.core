@@ -25,6 +25,7 @@ namespace MongoMigrations.Documents
         }
         [UsedImplicitly]
         public BsonValue this[string name] => BsonDocument[name];
+        [UsedImplicitly] public string Field(string field) => $"{Name}.{Index}.{field}";
 
         public MigrationForEachDocument([NotNull] string name, IEnumerable<BsonDocument> bsonDocuments, int index, [NotNull] BsonDocument bsonDocument)
         {
