@@ -53,40 +53,35 @@ namespace MongoMigrations.Extensions
                     {
                         { "Filter", updateOneModel.Filter.ToFilterDefinitionBsonDocument() },
                         { "Update", updateOneModel.Update.ToUpdateDefinitionBsonDocument() },
-                        { "IsUpsert", updateOneModel.IsUpsert },
-                        //{ "Collation", updateOneModel.Collation.ToBsonDocument() }
+                        { "IsUpsert", updateOneModel.IsUpsert }
                     });
                 case UpdateManyModel<TDocument> updateManyModel:
                     return bsonDocument.Merge(new BsonDocument
                     {
                         { "Filter", updateManyModel.Filter.ToFilterDefinitionBsonDocument() },
                         { "Update", updateManyModel.Update.ToUpdateDefinitionBsonDocument() },
-                        { "IsUpsert", updateManyModel.IsUpsert },
-                        //{ "Collation", updateManyModel.Collation.ToBsonDocument() }
+                        { "IsUpsert", updateManyModel.IsUpsert }
                     });
                 case DeleteOneModel<TDocument> deleteOneModel:
                     return bsonDocument.Merge(new BsonDocument
                     {
-                        { "Filter", deleteOneModel.Filter.ToFilterDefinitionBsonDocument() },
-                        //{ "Collation", deleteOneModel.Collation.ToBsonDocument() }
+                        { "Filter", deleteOneModel.Filter.ToFilterDefinitionBsonDocument() }
                     });
                 case DeleteManyModel<TDocument> deleteManyModel:
                     return bsonDocument.Merge(new BsonDocument
                     {
-                        { "Filter", deleteManyModel.Filter.ToFilterDefinitionBsonDocument() },
-                        //{ "Collation", deleteManyModel.Collation.ToBsonDocument() }
+                        { "Filter", deleteManyModel.Filter.ToFilterDefinitionBsonDocument() }
                     });
                 case ReplaceOneModel<TDocument> replaceOneModel:
                     return bsonDocument.Merge(new BsonDocument
                     {
                         { "Filter", replaceOneModel.Filter.ToFilterDefinitionBsonDocument() },
                         { "Replacement", replaceOneModel.Replacement.ToBsonDocument() },
-                        { "IsUpsert", replaceOneModel.IsUpsert },
-                        //{ "Collation", replaceOneModel.Collation.ToBsonDocument() }
+                        { "IsUpsert", replaceOneModel.IsUpsert }
                     });
             }
 
-            return null;            
+            throw new Exception($"Unknown write model: {writeModel.GetType().FullName}.");
         }
 
         [UsedImplicitly]
