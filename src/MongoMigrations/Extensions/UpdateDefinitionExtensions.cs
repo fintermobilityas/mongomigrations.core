@@ -58,10 +58,6 @@ namespace MongoMigrations.Extensions
 
         public sealed class NoopUpdateDefinition<TDocument> : UpdateDefinition<TDocument>
         {
-            NoopUpdateDefinition()
-            {
-            }
-
             public static NoopUpdateDefinition<TDocument> Instance { get; } = new NoopUpdateDefinition<TDocument>();
 
             public override BsonDocument Render(IBsonSerializer<TDocument> documentSerializer, IBsonSerializerRegistry serializerRegistry)
