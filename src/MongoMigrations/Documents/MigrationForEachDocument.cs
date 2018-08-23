@@ -83,11 +83,5 @@ namespace MongoMigrations.Documents
         {
             return new DoNotApplyWriteModel();
         }
-
-        [UsedImplicitly]
-        public IWriteModel Break()
-        {
-            return new BreakWriteModel();
-        }
     }
 }

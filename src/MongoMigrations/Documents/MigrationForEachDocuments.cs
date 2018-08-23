@@ -52,8 +52,6 @@ namespace MongoMigrations.Documents
                 var writeModel = _enumeratorFunc(new MigrationForEachDocument(_name, subDocuments, index++, document));
                 switch (writeModel)
                 {
-                    case BreakWriteModel _:
-                        yield break;
                     case DoNotApplyWriteModel _:
                         continue;
                 }
