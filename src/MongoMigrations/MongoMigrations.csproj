@@ -5,18 +5,18 @@
         <RootNamespace>MongoMigrations</RootNamespace>
         <AssemblyName>MongoMigrations</AssemblyName>
         <TargetFrameworks>netcoreapp2.0;netstandard2.0;net47</TargetFrameworks>
-        <Version>66.0.0</Version>
-        <AssemblyVersion>66.0.0.0</AssemblyVersion>
-        <FileVersion>66.0.0.0</FileVersion>
+        <Version>81.0.0</Version>
+        <AssemblyVersion>$(Version)</AssemblyVersion>
+        <FileVersion>$(Version)</FileVersion>
         <LangVersion>latest</LangVersion>
         <Authors>YouPark AS</Authors>
         <Company>YouPark AS</Company>
         <Copyright>YouPark AS</Copyright>
         <Description>Mongo migrations for dot net developers</Description>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <PackageLicenseUrl>https://github.com/youpark/youparkas.common.infrastructure</PackageLicenseUrl>
-        <PackageProjectUrl>https://github.com/youpark/youparkas.common.infrastructure</PackageProjectUrl>
-        <RepositoryUrl>https://github.com/youpark/youparkas.common.infrastructure</RepositoryUrl>
+        <PackageLicenseUrl>https://github.com/youpark/DotNetMongoMigrations</PackageLicenseUrl>
+        <PackageProjectUrl>https://github.com/youpark/DotNetMongoMigrations</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/youpark/DotNetMongoMigrations</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageOutputPath>C:\nupkgs</PackageOutputPath>
     </PropertyGroup>
@@ -25,11 +25,10 @@
         <DebugSymbols>true</DebugSymbols>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="MongoDB.Bson" Version="2.4.4" />
-        <PackageReference Include="MongoDB.Driver" Version="2.4.4" />
-        <PackageReference Include="MongoDB.Driver.Core" Version="2.4.4" />
-        <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
-        <PackageReference Include="SourceLink.Embed.AllSourceFiles" Version="2.4.0" PrivateAssets="all" />
+        <PackageReference Include="MongoDB.Driver" Version="2.7.0" />
+        <PackageReference Include="SourceLink.Embed.AllSourceFiles" Version="2.8.3" PrivateAssets="all">
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+        </PackageReference>
     </ItemGroup>
     <ItemGroup Condition="'$(TargetFramework)' == 'net47'">
         <Reference Include="System" />
