@@ -62,12 +62,15 @@ namespace MongoMigrations
 
             var buffer = new List<IWriteModel>();
             var skip = 0;
+            var deletedDocuments = 0;
 
             void Flush()
             {
                 foreach (var batch in buffer.Batch(BatchSize))
                 {
-                    Collection.BulkWrite(batch.Select(x => x.Model));
+                    var writeModels = batch.Select(x => x.Model).ToList();
+                    Collection.BulkWrite(writeModels);
+                    deletedDocuments += writeModels.Count(x => x is DeleteOneModel<BsonDocument>);
                 }
 
                 buffer.Clear();
@@ -75,12 +78,13 @@ namespace MongoMigrations
 
             while (true)
             {
-                var documents = GetDocuments(skip);
+                var documents = GetDocuments(skip - deletedDocuments);
                 if (documents.Any())
                 {
                     try
                     {
-                        buffer.AddRange(UpdateDocuments(documents));
+                        var writeModels = UpdateDocuments(documents).ToList();
+                        buffer.AddRange(writeModels);
 
                         if (buffer.Count >= BatchSize)
                         {
