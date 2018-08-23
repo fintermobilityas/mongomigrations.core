@@ -12,7 +12,7 @@ using MongoMigrations.WriteModels;
 
 namespace MongoMigrations.Documents
 {
-    [DebuggerDisplay("Write models: {WriteModelsCount}")]
+    [DebuggerDisplay("Write models: {" + nameof(WriteModelsCount) + "}")]
     public sealed class MigrationDocument : IEnumerable<IWriteModel>
     {
         readonly List<IWriteModel> _writeModels;
