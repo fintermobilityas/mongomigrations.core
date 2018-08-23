@@ -22,7 +22,7 @@ namespace MongoMigrations
         string CollectionName { get; }
     }
 
-    [DebuggerDisplay("Collection name: {CollectionName}. Batch size: {BatchSize}.")]
+    [DebuggerDisplay("Version: {" + nameof(Version) + "}. Collection name: {" + nameof(CollectionName) + "}. Batch size: {"+ nameof(BatchSize) + "}.")]
     [UsedImplicitly]
     public abstract class CollectionMigration : Migration, ICollectionMigration
     {
