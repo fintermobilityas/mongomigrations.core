@@ -14,6 +14,8 @@ namespace MongoMigrations
 {
     public interface ICollectionMigration : ISupportFilter, ISupportOnBeforeMigration, ISupportOnAfterSuccessfullMigration, ISupportBatchSize, ISupportProjection
     {
+        int DocumentCount { get; }
+        int DocumentsDeletedCount {get;}
         [UsedImplicitly]
         IMongoCollection<BsonDocument> Collection { get; }
         [UsedImplicitly]
@@ -31,6 +33,8 @@ namespace MongoMigrations
             CollectionName = collectionName;
         }
 
+        public int DocumentCount { get; private set; }
+        public int DocumentsDeletedCount { get; private set; }
         public IMongoCollection<BsonDocument> Collection { get; [UsedImplicitly] set; }
         public string CollectionName { get; }
         public int BatchSize { get; set; } = 1000;
@@ -62,7 +66,6 @@ namespace MongoMigrations
 
             var buffer = new List<IWriteModel>();
             var skip = 0;
-            var deletedDocuments = 0;
 
             void Flush()
             {
@@ -70,7 +73,7 @@ namespace MongoMigrations
                 {
                     var writeModels = batch.Select(x => x.Model).ToList();
                     Collection.BulkWrite(writeModels);
-                    deletedDocuments += writeModels.Count(x => x is DeleteOneModel<BsonDocument>);
+                    DocumentsDeletedCount += writeModels.Count(x => x is DeleteOneModel<BsonDocument>);
                 }
 
                 buffer.Clear();
@@ -78,9 +81,11 @@ namespace MongoMigrations
 
             while (true)
             {
-                var documents = GetDocuments(skip - deletedDocuments);
+                var documents = GetDocuments(skip - DocumentsDeletedCount);
                 if (documents.Any())
                 {
+                    DocumentCount += documents.Count;
+
                     try
                     {
                         var writeModels = MigrateDocuments(documents).ToList();
@@ -120,7 +125,15 @@ namespace MongoMigrations
             {
                 try
                 {
-                    writeModels.AddRange(UpdateDocument(new MigrationDocument(document)).Where(writeModel =>
+                    var migrateDocumentWriteModels = UpdateDocument(new MigrationDocument(document)).ToList();
+
+                    var migrateDocumentDeleteWriteModels = migrateDocumentWriteModels.Where(x => x.Model is DeleteOneModel<BsonDocument>).ToList();
+                    if (migrateDocumentDeleteWriteModels.Count > 1)
+                    {
+                        throw new Exception($"Multiple delete operations is not allowed. Count: {migrateDocumentDeleteWriteModels.Count}.");
+                    }
+
+                    writeModels.AddRange(migrateDocumentWriteModels.Where(writeModel =>
                     {
                         if (writeModel == null)
                         {
