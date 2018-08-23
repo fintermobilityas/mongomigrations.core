@@ -11,7 +11,7 @@ using MongoMigrations.Extensions;
 
 namespace MongoMigrations.Documents
 {
-    [DebuggerDisplay("Name: {_name}")]
+    [DebuggerDisplay("Name: {" + nameof(_name) + "}")]
     public sealed class MigrationForEachDocuments : IEnumerable<IWriteModel>
     {
         readonly string _name;
