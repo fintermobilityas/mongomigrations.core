@@ -83,7 +83,7 @@ namespace MongoMigrations
                 {
                     try
                     {
-                        var writeModels = UpdateDocuments(documents).ToList();
+                        var writeModels = MigrateDocuments(documents).ToList();
                         buffer.AddRange(writeModels);
 
                         if (buffer.Count >= BatchSize)
@@ -113,8 +113,7 @@ namespace MongoMigrations
             }
         }
 
-        [UsedImplicitly]
-        IEnumerable<IWriteModel> UpdateDocuments(IEnumerable<BsonDocument> documents)
+        IEnumerable<IWriteModel> MigrateDocuments(IEnumerable<BsonDocument> documents)
         {
             var writeModels = new List<IWriteModel>();
             foreach (var document in documents)
