@@ -42,7 +42,7 @@ namespace MongoMigrations
         public ProjectionDefinition<BsonDocument> Project { get; set; } 
 
         [UsedImplicitly]
-        [NotNull] public abstract IEnumerable<IWriteModel> UpdateDocument(MigrationDocument document);
+        [NotNull] public abstract IEnumerable<IWriteModel> MigrateDocument(MigrationDocument document);
 
         /// <summary>
         ///     Invoked before `Update`
@@ -119,7 +119,7 @@ namespace MongoMigrations
             {
                 try
                 {
-                    var migrateDocumentWriteModels = UpdateDocument(new MigrationDocument(document)).ToList();
+                    var migrateDocumentWriteModels = MigrateDocument(new MigrationDocument(document)).ToList();
 
                     var migrateDocumentDeleteWriteModels = migrateDocumentWriteModels.Where(x => x.Model is DeleteOneModel<BsonDocument>).ToList();
                     if (migrateDocumentDeleteWriteModels.Count > 1)
@@ -131,7 +131,7 @@ namespace MongoMigrations
                     {
                         if (writeModel == null)
                         {
-                            throw new ArgumentNullException(nameof(writeModel), $"Illegal return value. Cannot return a {nameof(IWriteModel)} of type null from method {nameof(UpdateDocument)}.");
+                            throw new ArgumentNullException(nameof(writeModel), $"Illegal return value. Cannot return a {nameof(IWriteModel)} of type null from method {nameof(MigrateDocument)}.");
                         }
 
                         return !(writeModel is DoNotApplyWriteModel);
