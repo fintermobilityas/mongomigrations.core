@@ -119,23 +119,38 @@ namespace MongoMigrations
             {
                 try
                 {
-                    var migrateDocumentWriteModels = MigrateDocument(new MigrationDocument(document)).ToList();
+                    var doNotApplyWriteModelCount = 0;
 
-                    var migrateDocumentDeleteWriteModels = migrateDocumentWriteModels.Where(x => x.Model is DeleteOneModel<BsonDocument>).ToList();
-                    if (migrateDocumentDeleteWriteModels.Count > 1)
-                    {
-                        throw new Exception($"Multiple delete operations is not allowed. Count: {migrateDocumentDeleteWriteModels.Count}.");
-                    }
-
-                    writeModels.AddRange(migrateDocumentWriteModels.Where(writeModel =>
+                    var migrationDocumentWriteModels = MigrateDocument(new MigrationDocument(document)).Where(writeModel =>
                     {
                         if (writeModel == null)
                         {
-                            throw new ArgumentNullException(nameof(writeModel), $"Illegal return value. Cannot return a {nameof(IWriteModel)} of type null from method {nameof(MigrateDocument)}.");
+                            throw new ArgumentNullException(nameof(writeModel),
+                                $"Illegal return value. Cannot return a {nameof(IWriteModel)} of type null from method {nameof(MigrateDocument)}.");
                         }
 
-                        return !(writeModel is DoNotApplyWriteModel);
-                    }));
+                        var doNotApplyWriteModel = writeModel is DoNotApplyWriteModel;
+                        if (doNotApplyWriteModel)
+                        {
+                            doNotApplyWriteModelCount += 1;
+                        }
+
+                        return !doNotApplyWriteModel;
+                    }).ToList();
+
+                    var migrateDocumentDeleteWriteModels = migrationDocumentWriteModels.Where(x => x.Model is DeleteOneModel<BsonDocument>).ToList();
+                    if (migrateDocumentDeleteWriteModels.Count > 1)
+                    {
+                        throw new Exception($"Multiple delete write models is not allowed. Delete count: {migrateDocumentDeleteWriteModels.Count}. Write models count: {migrationDocumentWriteModels.Count}");
+                    }
+      
+                    if (doNotApplyWriteModelCount == 1 && migrationDocumentWriteModels.Count > 1)
+                    {
+                        throw new Exception($"Multiple write models is not allowed when skipping a document. Write model count: {migrationDocumentWriteModels.Count}.");
+                    }
+
+                    writeModels.AddRange(migrationDocumentWriteModels);
+
                 }
                 catch (MongoException exception)
                 {
@@ -150,7 +165,7 @@ namespace MongoMigrations
             var message =
                 new
                 {
-                    Message = "Failed to update document",
+                    Message = "Failed to migrate document",
                     CollectionName,
                     Id = document.TryGetDocumentId(),
                     MigrationVersion = Version,
@@ -165,7 +180,7 @@ namespace MongoMigrations
             var message =
                 new
                 {
-                    Message = "Failed to update documents",
+                    Message = "Failed to migrate documents",
                     CollectionName,
                     MigrationVersion = Version,
                     MigrationDescription = Description
