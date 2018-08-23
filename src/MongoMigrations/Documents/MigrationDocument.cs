@@ -16,7 +16,6 @@ namespace MongoMigrations.Documents
     public sealed class MigrationDocument : IEnumerable<IWriteModel>
     {
         readonly List<IWriteModel> _writeModels;
-        MigrationUpdateDocument _migrationUpdateDocument;
 
         [UsedImplicitly] public BsonDocument BsonDocument { get; }
         [UsedImplicitly] public BsonValue this[string name] => BsonDocument[name];
@@ -39,35 +38,14 @@ namespace MongoMigrations.Documents
         }
 
         [UsedImplicitly]
-        public void ForEach([NotNull] string name, [NotNull] Func<MigrationForEachDocument, IWriteModel> enumeratorFunc)
+        public List<IWriteModel> ForEach([NotNull] string name, [NotNull] Func<MigrationForEachDocument, IWriteModel> enumeratorFunc)
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (enumeratorFunc == null) throw new ArgumentNullException(nameof(enumeratorFunc));
 
             _writeModels.AddRange(new MigrationForEachDocuments(name, this[name].AsBsonArray, enumeratorFunc));
-        }
 
-        [UsedImplicitly]
-        public void UpdateCombine([NotNull] FilterDefinition<BsonDocument> filterDefinition, [NotNull] Func<UpdateDefinitionBuilder<BsonDocument>, UpdateDefinition<BsonDocument>> builder)
-        {
-            if (_migrationUpdateDocument != null)
-            {
-                throw new Exception($"A {nameof(MigrationUpdateDocument)} can only be instantiated once.");
-            }
-
-            _migrationUpdateDocument = new MigrationUpdateDocument(filterDefinition, builder(Builders<BsonDocument>.Update));
-        }
-
-        [UsedImplicitly]
-        public void UpdateCombine([NotNull] Func<UpdateDefinitionBuilder<BsonDocument>, UpdateDefinition<BsonDocument>> builder)
-        {
-            if (_migrationUpdateDocument == null)
-            {
-                _migrationUpdateDocument = new MigrationUpdateDocument(ByDocumentIdFilter(), builder(Builders<BsonDocument>.Update));
-                return;
-            }
-
-            _migrationUpdateDocument = _migrationUpdateDocument.Combine(builder);
+            return _writeModels;
         }
 
         [UsedImplicitly]
@@ -75,7 +53,8 @@ namespace MongoMigrations.Documents
         {
             if (filterDefinition == null) throw new ArgumentNullException(nameof(filterDefinition));
             if (document == null) throw new ArgumentNullException(nameof(document));
-            return new UpdateOneModel<BsonDocument>(filterDefinition, document).AsEnumerable();
+            _writeModels.Add(new MigrationUpdateDocument(filterDefinition, document));
+            return _writeModels;
         }
 
         [UsedImplicitly]
@@ -83,7 +62,8 @@ namespace MongoMigrations.Documents
         {
             if (filterDefinition == null) throw new ArgumentNullException(nameof(filterDefinition));
             if (updateDefinition == null) throw new ArgumentNullException(nameof(updateDefinition));
-            return new UpdateOneModel<BsonDocument>(filterDefinition, updateDefinition).AsEnumerable();
+            _writeModels.Add(new MigrationUpdateDocument(filterDefinition, updateDefinition));
+            return _writeModels;
         }
 
         [UsedImplicitly]
@@ -98,7 +78,8 @@ namespace MongoMigrations.Documents
         public IEnumerable<IWriteModel> Delete([NotNull] FilterDefinition<BsonDocument> filterDefinition)
         {
             if (filterDefinition == null) throw new ArgumentNullException(nameof(filterDefinition));
-            return new DeleteOneModel<BsonDocument>(filterDefinition).AsEnumerable();
+            _writeModels.Add(new MigrationDeleteDocument(filterDefinition));
+            return _writeModels;
         }
 
         [UsedImplicitly]
@@ -136,14 +117,7 @@ namespace MongoMigrations.Documents
 
         public IEnumerator<IWriteModel> GetEnumerator()
         {   
-            var enumerator = _writeModels.ToList();
-
-            if (_migrationUpdateDocument != null)
-            {
-                enumerator.Add(_migrationUpdateDocument);
-            }
-
-            return enumerator.GetEnumerator();
+            return _writeModels.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
