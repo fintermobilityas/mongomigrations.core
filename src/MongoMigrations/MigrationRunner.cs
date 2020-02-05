@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 
@@ -67,6 +68,11 @@ namespace MongoMigrations
 
             try
             {
+                if (migration is CollectionMigration collectionMigration)
+                {
+                    collectionMigration.Collection = migration.Database.GetCollection<BsonDocument>(collectionMigration.CollectionName);
+                }
+
                 InvokeIf<ISupportOnBeforeMigration>(migration, x => x.OnBeforeMigration());
                 migration.Update();
                 InvokeIf<ISupportOnAfterSuccessfullMigration>(migration, x => x.OnAfterSuccessfulMigration());

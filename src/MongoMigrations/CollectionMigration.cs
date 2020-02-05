@@ -35,7 +35,7 @@ namespace MongoMigrations
 
         public int DocumentCount { get; private set; }
         public int DocumentsDeletedCount { get; private set; }
-        public IMongoCollection<BsonDocument> Collection { get; [UsedImplicitly] set; }
+        public IMongoCollection<BsonDocument> Collection { get; internal set; }
         public string CollectionName { get; }
         public int BatchSize { get; set; } = 1000;
         public FilterDefinition<BsonDocument> Filter { get; set; } = FilterDefinition<BsonDocument>.Empty;
@@ -56,8 +56,6 @@ namespace MongoMigrations
 
         public override void Update()
         {
-            Collection = Database.GetCollection<BsonDocument>(CollectionName);
-
             var buffer = new List<IWriteModel>();
             var skip = 0;
 
