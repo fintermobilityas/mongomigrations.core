@@ -29,7 +29,7 @@ namespace MongoMigrations
 
         public override string ToString()
         {
-            return Version + " started on " + StartedOn + " completed on " + CompletedOn;
+            return $"{Version} started on {StartedOn} completed on {CompletedOn}";
         }
 
         public static AppliedMigration MarkerOnly(MigrationVersion version)

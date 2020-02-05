@@ -38,7 +38,7 @@ namespace MongoMigrations
         [UsedImplicitly]
         public void UpdateToLatest()
         {
-            Console.WriteLine(WhatWeAreUpdating() + " to latest...");
+            Console.WriteLine($"{WhatWeAreUpdating()} to latest...");
             UpdateTo(MigrationLocator.LatestVersion());
         }
 
@@ -115,7 +115,7 @@ namespace MongoMigrations
         {
             var message = new
             {
-                Message = "Migration failed to be applied: " + exception.Message,
+                Message = $"Migration failed to be applied: {exception.Message}",
                 migration.Version,
                 Name = migration.GetType(),
                 migration.Description,
