@@ -41,3 +41,4 @@ _ReSharper*/
 *.orig
 [Pp]ackages/
 src/.vs/
+nupkgs/
