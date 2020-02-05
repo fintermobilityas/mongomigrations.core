@@ -14,6 +14,7 @@ namespace MongoMigrations.Extensions
     [UsedImplicitly]
     public static class MigrationExtensions
     {
+        [UsedImplicitly]
         internal static IEnumerable<IWriteModel> AsEnumerable(this WriteModel<BsonDocument> writeModel)
         {
             return new List<IWriteModel> { new WriteModel(writeModel) };
@@ -25,7 +26,7 @@ namespace MongoMigrations.Extensions
             if (updateDefinition == null) throw new ArgumentNullException(nameof(updateDefinition));
             var documentSerializer = BsonSerializer.SerializerRegistry.GetSerializer<TDocument>();
             var renderedFilter = updateDefinition.Render(documentSerializer, BsonSerializer.SerializerRegistry);
-            return renderedFilter;
+            return renderedFilter.AsBsonDocument;
         }
 
         [UsedImplicitly]
