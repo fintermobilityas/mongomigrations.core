@@ -14,8 +14,8 @@ namespace MongoMigrations
 {
     public interface ICollectionMigration : ISupportFilter, ISupportOnBeforeMigration, ISupportOnAfterSuccessfullMigration, ISupportBatchSize, ISupportProjection
     {
-        int DocumentCount { get; }
-        int DocumentsDeletedCount {get;}
+        [UsedImplicitly] int DocumentCount { get; }
+        [UsedImplicitly] int DocumentsDeletedCount {get;}
         [UsedImplicitly]
         IMongoCollection<BsonDocument> Collection { get; }
         [UsedImplicitly]
