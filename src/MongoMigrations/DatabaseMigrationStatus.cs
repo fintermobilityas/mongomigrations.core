@@ -49,7 +49,8 @@ namespace MongoMigrations
         {
             return GetMigrationsApplied()
                 .Find(FilterDefinition<AppliedMigration>.Empty)
-                .SortByDescending(v => v.Version)
+                .ToList() // in memory but this will never get big enough to matter
+                .OrderByDescending(v => v.Version)
                 .FirstOrDefault();
         }
 
