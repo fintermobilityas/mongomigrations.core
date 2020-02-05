@@ -192,7 +192,8 @@ namespace MongoMigrations
             if (BatchSize <= 0)
                 throw new ArgumentOutOfRangeException(nameof(BatchSize), "Must be greater than zero.");
 
-            var cursor = Filter != null ? Collection.Find(Filter) : Collection.Find(FilterDefinition<BsonDocument>.Empty);
+            var filterDefinition = Filter ?? FilterDefinition<BsonDocument>.Empty;
+            var cursor = Collection.Find(filterDefinition);
 
             cursor
                 .Skip(skip)
