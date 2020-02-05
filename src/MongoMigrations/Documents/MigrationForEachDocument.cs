@@ -55,7 +55,7 @@ namespace MongoMigrations.Documents
         public IWriteModel Delete([NotNull] FilterDefinition<BsonDocument> filterDefinition)
         {
             if (filterDefinition == null) throw new ArgumentNullException(nameof(filterDefinition));
-            return new WriteModel(new DeleteOneModel<BsonDocument>(filterDefinition));
+            return new MigrationDeleteDocument(filterDefinition);
         }
         
         [UsedImplicitly]
