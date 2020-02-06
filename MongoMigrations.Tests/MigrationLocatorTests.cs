@@ -19,6 +19,9 @@ namespace MongoMigrations.Tests
 
             var migrations = _migrationLocator.GetAllMigrations();
             Assert.Single(migrations);
+
+            var migrationsIsCached = _migrationLocator.GetAllMigrations();
+            Assert.Single(migrationsIsCached);
         }
 
         [Fact]

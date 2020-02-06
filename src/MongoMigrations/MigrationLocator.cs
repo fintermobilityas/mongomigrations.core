@@ -9,10 +9,14 @@ namespace MongoMigrations
     public sealed class MigrationLocator
     {
         readonly List<Assembly> _assemblies;
+        readonly Dictionary<string, List<Migration>> _migrationsDictionary;
+        readonly object _syncRoot;
 
         public MigrationLocator()
         {
             _assemblies = new List<Assembly>();
+            _migrationsDictionary = new Dictionary<string, List<Migration>>();
+            _syncRoot = new object();
         }
 
         [UsedImplicitly]
@@ -26,25 +30,29 @@ namespace MongoMigrations
         {
             if (assembly == null) throw new ArgumentNullException(nameof(assembly));
 
-            if (!_assemblies.Contains(assembly))
+            lock (_syncRoot)
             {
-                _assemblies.Add(assembly);
+                if (!_assemblies.Contains(assembly))
+                {
+                    _assemblies.Add(assembly);
+                }
             }
-
         }
 
         public IEnumerable<Migration> GetAllMigrations()
         {
-            static IEnumerable<Migration> GetMigrationsFromAssembly(Assembly assembly)
+            static List<Migration> FindMigrations(Assembly assembly)
             {
                 if (assembly == null) throw new ArgumentNullException(nameof(assembly));
+
                 try
                 {
                     return assembly.GetTypes()
                         .Where(t => typeof(Migration).IsAssignableFrom(t) && !t.IsAbstract)
                         .Select(Activator.CreateInstance)
                         .OfType<Migration>()
-                        .OrderBy(x => x.Version);
+                        .OrderBy(x => x.Version)
+                        .ToList();
                 }
                 catch (Exception exception)
                 {
@@ -52,7 +60,21 @@ namespace MongoMigrations
                 }
             }
 
-            return _assemblies.SelectMany(GetMigrationsFromAssembly);
+            lock (_syncRoot)
+            {
+                foreach (var assembly in _assemblies)
+                {
+                    if (!_migrationsDictionary.ContainsKey(assembly.FullName))
+                    {
+                        _migrationsDictionary[assembly.FullName] = FindMigrations(assembly);
+                    }
+
+                    foreach (var migration in _migrationsDictionary[assembly.FullName])
+                    {
+                        yield return migration;
+                    }
+                }
+            }
         }
 
         public MigrationVersion GetLatestVersion()
