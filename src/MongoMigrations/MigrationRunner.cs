@@ -74,7 +74,16 @@ namespace MongoMigrations
                 }
                 catch (Exception exception)
                 {
-                    OnMigrationException(migration, exception);
+                    var message = new
+                    {
+                        Message = $"Migration failed to be applied: {exception.Message}",
+                        migration.Version,
+                        Name = migration.GetType(),
+                        migration.Description,
+                        Database.DatabaseNamespace.DatabaseName
+                    };
+
+                    throw new MigrationException(message.ToString(), exception);
                 }
 
                 DatabaseStatus.CompleteMigration(appliedMigration);
@@ -88,21 +97,6 @@ namespace MongoMigrations
 
             action?.Invoke(tFeature);
             return true;
-        }
-
-        void OnMigrationException([NotNull] IMigration migration, [NotNull] Exception exception)
-        {
-            if (migration == null) throw new ArgumentNullException(nameof(migration));
-            if (exception == null) throw new ArgumentNullException(nameof(exception));
-            var message = new
-            {
-                Message = $"Migration failed to be applied: {exception.Message}",
-                migration.Version,
-                Name = migration.GetType(),
-                migration.Description,
-                Database.DatabaseNamespace.DatabaseName
-            };
-            throw new MigrationException(message.ToString(), exception);
         }
 
     }
