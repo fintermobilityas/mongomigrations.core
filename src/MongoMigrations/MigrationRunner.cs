@@ -34,18 +34,7 @@ namespace MongoMigrations
         [UsedImplicitly]
         public void UpdateToLatest()
         {
-            Console.WriteLine($"{WhatWeAreUpdating()} to latest...");
             UpdateTo(MigrationLocator.LatestVersion());
-        }
-
-        string WhatWeAreUpdating()
-        {
-            return $"Updating server(s) \"{ServerAddresses()}\" for database \"{Database.DatabaseNamespace.DatabaseName}\"";
-        }
-
-        string ServerAddresses()
-        {
-            return string.Join(",", Database.Client.Settings.Servers.Select(x => $"{x.Host}:{x.Port}"));
         }
 
         void ApplyMigrations(IEnumerable<Migration> migrations)
@@ -56,8 +45,6 @@ namespace MongoMigrations
 
         void ApplyMigration(Migration migration)
         {
-            Console.WriteLine(new {Message = "Applying migration", migration.Version, migration.Description, Database.DatabaseNamespace.DatabaseName});
-
             var appliedMigration = DatabaseStatus.StartMigration(migration);
             migration.Database = Database;
 
@@ -82,7 +69,6 @@ namespace MongoMigrations
         public void UpdateTo(MigrationVersion updateToVersion)
         {
             var currentVersion = DatabaseStatus.GetLastAppliedMigration();
-            Console.WriteLine(new {Message = WhatWeAreUpdating(), currentVersion, updateToVersion, Database.DatabaseNamespace.DatabaseName});
 
             var migrations = MigrationLocator.GetMigrationsAfter(currentVersion)
                 .Where(m => m.Version <= updateToVersion);
@@ -121,7 +107,6 @@ namespace MongoMigrations
                 migration.Description,
                 Database.DatabaseNamespace.DatabaseName
             };
-            Console.WriteLine(message);
             throw new MigrationException(message.ToString(), exception);
         }
 
