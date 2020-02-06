@@ -63,14 +63,7 @@ namespace MongoMigrations
         {
             if (version == null) throw new ArgumentNullException(nameof(version));
 
-            var migrations = GetAllMigrations();
-
-            if (version != null)
-            {
-                migrations = migrations.Where(m => m.Version > version.Version);
-            }
-
-            return migrations.OrderBy(m => m.Version);
+            return GetAllMigrations().Where(m => m.Version > version.Version).OrderBy(m => m.Version);
         }
     }
 }

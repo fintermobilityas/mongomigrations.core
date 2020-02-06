@@ -81,16 +81,6 @@ namespace MongoMigrations
             }
         }
 
-        [UsedImplicitly]
-        public bool ConfigureIf<TFeature>(IMigration migration, Action<TFeature> action) where TFeature : IMigrationProperty
-        {
-            if (!(migration is TFeature tFeature))
-                return false;
-
-            action?.Invoke(tFeature);
-            return true;
-        }
-
         public bool InvokeIf<TFeature>(IMigration migration, Action<TFeature> action) where TFeature : IMigrationInvokable
         {
             if (!(migration is TFeature tFeature))
