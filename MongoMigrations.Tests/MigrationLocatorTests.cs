@@ -3,11 +3,11 @@ using Xunit;
 
 namespace MongoMigrations.Tests
 {
-    public class MigrationLocatorTests : IClassFixture<BaseFixture>
+    public class MigrationLocatorTests
     {
         readonly MigrationLocator _migrationLocator;
 
-        public MigrationLocatorTests(BaseFixture baseFixture)
+        public MigrationLocatorTests()
         {
             _migrationLocator = new MigrationLocator();
         }
@@ -61,4 +61,5 @@ namespace MongoMigrations.Tests
             throw new System.NotImplementedException();
         }
     }
+
 }

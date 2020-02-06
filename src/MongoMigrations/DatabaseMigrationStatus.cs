@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 using MongoDB.Driver;
 
@@ -30,6 +31,14 @@ namespace MongoMigrations
         {
             var lastAppliedMigration = GetLastAppliedMigration();
             return lastAppliedMigration?.Version ?? MigrationVersion.Default;
+        }
+
+        public List<AppliedMigration> GetMigrations()
+        {
+            return Collection
+                .Find(FilterDefinition<AppliedMigration>.Empty)
+                .SortByDescending(v => v.Version)
+                .ToList();
         }
 
         public AppliedMigration GetLastAppliedMigration()
