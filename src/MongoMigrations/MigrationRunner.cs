@@ -56,7 +56,7 @@ namespace MongoMigrations
 
             foreach (var migration in migrations)
             {
-                ApplyMigration(migration, serverName);
+                ApplyMigration(migration);
             }
 
             static void InvokeIf<TFeature>(IMigration migration, Action<TFeature> action) where TFeature : IMigrationInvokable
@@ -65,7 +65,7 @@ namespace MongoMigrations
                 action?.Invoke(tFeature);
             }
 
-            void ApplyMigration(IMigration migrationToApply, string serverName)
+            void ApplyMigration(IMigration migrationToApply)
             {
                 if (migrationToApply == null) throw new ArgumentNullException(nameof(migrationToApply));
 
