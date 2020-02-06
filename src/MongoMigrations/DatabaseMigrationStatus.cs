@@ -23,21 +23,6 @@ namespace MongoMigrations
             return _runner.MigrationLocator.GetLatestVersion() != version;
         }
 
-        [UsedImplicitly]
-        public void ThrowIfNotLatestVersion()
-        {
-            if (!IsNotLatestVersion(out _))
-            {
-                return;
-            }
-
-            var databaseVersion = GetVersion();
-            var migrationVersion = _runner.MigrationLocator.GetLatestVersion();
-
-            throw new ApplicationException(
-                $"Database is not the expected version, database is at version: {databaseVersion}, migrations are at version: {migrationVersion}");
-        }
-
         public MigrationVersion GetVersion()
         {
             var lastAppliedMigration = GetLastAppliedMigration();
