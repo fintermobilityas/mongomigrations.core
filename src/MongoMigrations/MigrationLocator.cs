@@ -22,7 +22,10 @@ namespace MongoMigrations
         public void LookForMigrationsInAssembly(Assembly assembly)
         {
             if (_assemblies.Contains(assembly))
+            {
                 return;
+            }
+
             _assemblies.Add(assembly);
         }
 
@@ -51,10 +54,14 @@ namespace MongoMigrations
 
         public MigrationVersion LatestVersion()
         {
-            if (!GetAllMigrations().Any())
+            var migrations = GetAllMigrations().ToList();
+
+            if (!migrations.Any())
+            {
                 return MigrationVersion.Default();
-            return GetAllMigrations()
-                .Max(m => m.Version);
+            }
+
+            return migrations.Max(m => m.Version);
         }
 
         public IEnumerable<Migration> GetMigrationsAfter(AppliedMigration currentVersion)
@@ -62,7 +69,9 @@ namespace MongoMigrations
             var migrations = GetAllMigrations();
 
             if (currentVersion != null)
+            {
                 migrations = migrations.Where(m => m.Version > currentVersion.Version);
+            }
 
             return migrations.OrderBy(m => m.Version);
         }
