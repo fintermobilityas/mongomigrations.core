@@ -13,20 +13,21 @@ namespace MongoMigrations
         public string VersionCollectionName = "DatabaseVersion";
         public IMongoCollection<AppliedMigration> Collection => _collection ??= _runner.Database.GetCollection<AppliedMigration>(VersionCollectionName);
 
-        public DatabaseMigrationStatus(MigrationRunner runner)
+        public DatabaseMigrationStatus([NotNull] MigrationRunner runner)
         {
-            _runner = runner;
+            _runner = runner ?? throw new ArgumentNullException(nameof(runner));
         }
 
-        public bool IsNotLatestVersion()
+        public bool IsNotLatestVersion(out MigrationVersion version)
         {
-            return _runner.MigrationLocator.LatestVersion() != GetVersion();
+            version = GetVersion();
+            return _runner.MigrationLocator.LatestVersion() != version;
         }
 
         [UsedImplicitly]
         public void ThrowIfNotLatestVersion()
         {
-            if (!IsNotLatestVersion())
+            if (!IsNotLatestVersion(out _))
             {
                 return;
             }

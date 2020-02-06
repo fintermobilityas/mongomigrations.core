@@ -8,7 +8,12 @@ namespace MongoMigrations
 {
     public sealed class MigrationLocator
     {
-        readonly List<Assembly> _assemblies = new List<Assembly>();
+        readonly List<Assembly> _assemblies;
+
+        public MigrationLocator()
+        {
+            _assemblies = new List<Assembly>();
+        }
 
         [UsedImplicitly]
         public void LookForMigrationsInAssemblyOfType<T>()
@@ -17,31 +22,32 @@ namespace MongoMigrations
             LookForMigrationsInAssembly(assembly);
         }
 
-        public void LookForMigrationsInAssembly(Assembly assembly)
+        public void LookForMigrationsInAssembly([NotNull] Assembly assembly)
         {
-            if (_assemblies.Contains(assembly))
+            if (assembly == null) throw new ArgumentNullException(nameof(assembly));
+
+            if (!_assemblies.Contains(assembly))
             {
-                return;
+                _assemblies.Add(assembly);
             }
 
-            _assemblies.Add(assembly);
         }
 
         public IEnumerable<Migration> GetAllMigrations()
         {
-            return _assemblies
-                .SelectMany(GetMigrationsFromAssembly)
-                .OrderBy(m => m.Version);
+            return _assemblies.SelectMany(GetMigrationsFromAssembly);
         }
 
-        static IEnumerable<Migration> GetMigrationsFromAssembly(Assembly assembly)
+        static IEnumerable<Migration> GetMigrationsFromAssembly([NotNull] Assembly assembly)
         {
+            if (assembly == null) throw new ArgumentNullException(nameof(assembly));
             try
             {
                 return assembly.GetTypes()
                     .Where(t => typeof(Migration).IsAssignableFrom(t) && !t.IsAbstract)
                     .Select(Activator.CreateInstance)
-                    .OfType<Migration>();
+                    .OfType<Migration>()
+                    .OrderBy(x => x.Version);
             }
             catch (Exception exception)
             {

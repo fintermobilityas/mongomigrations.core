@@ -34,7 +34,6 @@ namespace MongoMigrations
                 throw new ArgumentException($"Invalid major version value: {revisionString}", nameof(version));
         }
 
-        [UsedImplicitly]
         public MigrationVersion(int major, int minor = 0, int revision = 0)
         {
             if (major < 0) throw new ArgumentOutOfRangeException(nameof(major));
