@@ -40,10 +40,14 @@ namespace MongoMigrations
 
         public void UpdateTo(MigrationVersion updateToVersion)
         {
-            var currentVersion = DatabaseStatus.GetLastAppliedMigration();
+            var lastAppliedMigration = DatabaseStatus.GetLastAppliedMigration();
+            if (lastAppliedMigration == null)
+            {
+                return;
+            }
 
             var migrations = MigrationLocator
-                .GetMigrationsAfter(currentVersion)
+                .GetMigrationsAfter(lastAppliedMigration)
                 .Where(m => m.Version <= updateToVersion)
                 .ToList();
 
@@ -61,7 +65,7 @@ namespace MongoMigrations
                 {
                     if (migration is CollectionMigration collectionMigration)
                     {
-                        collectionMigration.Collection = migration.Database.GetCollection<BsonDocument>(collectionMigration.CollectionName);
+                        collectionMigration.Collection = Database.GetCollection<BsonDocument>(collectionMigration.CollectionName);
                     }
 
                     InvokeIf<ISupportOnBeforeMigration>(migration, x => x.OnBeforeMigration());

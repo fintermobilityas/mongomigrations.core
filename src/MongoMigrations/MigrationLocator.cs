@@ -56,21 +56,18 @@ namespace MongoMigrations
         {
             var migrations = GetAllMigrations().ToList();
 
-            if (!migrations.Any())
-            {
-                return MigrationVersion.Default();
-            }
-
-            return migrations.Max(m => m.Version);
+            return !migrations.Any() ? MigrationVersion.Default() : migrations.Max(m => m.Version);
         }
 
-        public IEnumerable<Migration> GetMigrationsAfter(AppliedMigration currentVersion)
+        public IEnumerable<Migration> GetMigrationsAfter([NotNull] AppliedMigration version)
         {
+            if (version == null) throw new ArgumentNullException(nameof(version));
+
             var migrations = GetAllMigrations();
 
-            if (currentVersion != null)
+            if (version != null)
             {
-                migrations = migrations.Where(m => m.Version > currentVersion.Version);
+                migrations = migrations.Where(m => m.Version > version.Version);
             }
 
             return migrations.OrderBy(m => m.Version);
