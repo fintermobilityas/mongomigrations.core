@@ -6,8 +6,6 @@ namespace MongoMigrations
 {
     public class AppliedMigration
     {
-        const string ManuallyMarked = "Manually marked";
-
         AppliedMigration()
         {
         }
@@ -30,17 +28,6 @@ namespace MongoMigrations
         public override string ToString()
         {
             return $"{Version} started on {StartedOn} completed on {CompletedOn}";
-        }
-
-        public static AppliedMigration MarkerOnly(MigrationVersion version)
-        {
-            return new AppliedMigration
-            {
-                Version = version,
-                Description = ManuallyMarked,
-                StartedOn = DateTime.Now,
-                CompletedOn = DateTime.Now
-            };
         }
     }
 }

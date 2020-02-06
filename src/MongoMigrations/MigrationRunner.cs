@@ -52,7 +52,6 @@ namespace MongoMigrations
                 ApplyMigration(migration);
             }
 
-
             void ApplyMigration(Migration migration)
             {
                 var appliedMigration = DatabaseStatus.StartMigration(migration);

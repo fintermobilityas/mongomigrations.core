@@ -80,8 +80,7 @@ namespace MongoMigrations
 
                     try
                     {
-                        var writeModels = MigrateDocuments(documents).ToList();
-                        buffer.AddRange(writeModels);
+                        buffer.AddRange(MigrateDocuments(documents));
 
                         if (buffer.Count >= BatchSize)
                         {

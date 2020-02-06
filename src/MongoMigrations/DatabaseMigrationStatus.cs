@@ -27,9 +27,13 @@ namespace MongoMigrations
         public void ThrowIfNotLatestVersion()
         {
             if (!IsNotLatestVersion())
+            {
                 return;
+            }
+
             var databaseVersion = GetVersion();
             var migrationVersion = _runner.MigrationLocator.LatestVersion();
+
             throw new ApplicationException(
                 $"Database is not the expected version, database is at version: {databaseVersion}, migrations are at version: {migrationVersion}");
         }
@@ -61,22 +65,6 @@ namespace MongoMigrations
             appliedMigration.CompletedOn = DateTime.Now;
             Collection.UpdateOne(Builders<AppliedMigration>.Filter.Eq(x => x.Version, appliedMigration.Version),
                 Builders<AppliedMigration>.Update.Set(x => x.CompletedOn, appliedMigration.CompletedOn));
-        }
-
-        [UsedImplicitly]
-        public void MarkUpToVersion(MigrationVersion version)
-        {
-            _runner.MigrationLocator.GetAllMigrations()
-                .Where(m => m.Version <= version)
-                .ToList()
-                .ForEach(m => MarkVersion(m.Version));
-        }
-
-        [UsedImplicitly]
-        public void MarkVersion(MigrationVersion version)
-        {
-            var appliedMigration = AppliedMigration.MarkerOnly(version);
-            Collection.InsertOne(appliedMigration);
         }
     }
 }
