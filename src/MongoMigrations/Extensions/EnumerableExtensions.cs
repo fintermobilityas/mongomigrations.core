@@ -23,7 +23,7 @@ namespace MoreLinq
     using System.Diagnostics;
     using System.Linq;
 
-    static class MoreEnumerable
+    internal static class EnumerableExtensions
     {
         /// <summary>
         /// Batches the source sequence into sized buckets.
@@ -51,13 +51,13 @@ namespace MoreLinq
         public static IEnumerable<TResult> Batch<TSource, TResult>(this IEnumerable<TSource> source, int size,
             Func<IEnumerable<TSource>, TResult> resultSelector)
         {
-            if (source == null) throw new ArgumentNullException("source");
-            if (size <= 0) throw new ArgumentOutOfRangeException("size");
-            if (resultSelector == null) throw new ArgumentNullException("resultSelector");
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (size <= 0) throw new ArgumentOutOfRangeException(nameof(size));
+            if (resultSelector == null) throw new ArgumentNullException(nameof(resultSelector));
             return BatchImpl(source, size, resultSelector);
         }
 
-        private static IEnumerable<TResult> BatchImpl<TSource, TResult>(this IEnumerable<TSource> source, int size,
+        static IEnumerable<TResult> BatchImpl<TSource, TResult>(this IEnumerable<TSource> source, int size,
             Func<IEnumerable<TSource>, TResult> resultSelector)
         {
             Debug.Assert(source != null);

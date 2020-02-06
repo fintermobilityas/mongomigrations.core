@@ -12,7 +12,7 @@ namespace MongoMigrations
     {
         static MigrationRunner()
         {
-            Init();
+            BsonSerializer.RegisterSerializer(typeof(MigrationVersion), new MigrationVersionSerializer());
         }
 
         [UsedImplicitly]
@@ -30,11 +30,6 @@ namespace MongoMigrations
         public IMongoDatabase Database { get; [UsedImplicitly]set; }
         public MigrationLocator MigrationLocator { get; [UsedImplicitly]set; }
         public DatabaseMigrationStatus DatabaseStatus { get; [UsedImplicitly]set; }
-
-        static void Init()
-        {
-            BsonSerializer.RegisterSerializer(typeof(MigrationVersion), new MigrationVersionSerializer());
-        }
 
         [UsedImplicitly]
         public void UpdateToLatest()
@@ -84,7 +79,6 @@ namespace MongoMigrations
             DatabaseStatus.CompleteMigration(appliedMigration);
         }
 
-        [UsedImplicitly]
         public void UpdateTo(MigrationVersion updateToVersion)
         {
             var currentVersion = DatabaseStatus.GetLastAppliedMigration();
@@ -106,7 +100,6 @@ namespace MongoMigrations
             return true;
         }
 
-        [UsedImplicitly]
         public bool InvokeIf<TFeature>(IMigration migration, Action<TFeature> action) where TFeature : IMigrationInvokable
         {
             if (!(migration is TFeature tFeature))
@@ -116,9 +109,10 @@ namespace MongoMigrations
             return true;
         }
 
-        [UsedImplicitly]
-        void OnMigrationException(IMigration migration, Exception exception)
+        void OnMigrationException([NotNull] IMigration migration, [NotNull] Exception exception)
         {
+            if (migration == null) throw new ArgumentNullException(nameof(migration));
+            if (exception == null) throw new ArgumentNullException(nameof(exception));
             var message = new
             {
                 Message = $"Migration failed to be applied: {exception.Message}",
