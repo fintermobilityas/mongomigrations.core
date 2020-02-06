@@ -10,8 +10,6 @@ namespace MongoMigrations
     {
         readonly List<Assembly> _assemblies = new List<Assembly>();
 
-        [UsedImplicitly] public List<MigrationFilter> MigrationFilters = new List<MigrationFilter>();
-
         [UsedImplicitly]
         public void LookForMigrationsInAssemblyOfType<T>()
         {
@@ -36,15 +34,14 @@ namespace MongoMigrations
                 .OrderBy(m => m.Version);
         }
 
-        IEnumerable<Migration> GetMigrationsFromAssembly(Assembly assembly)
+        static IEnumerable<Migration> GetMigrationsFromAssembly(Assembly assembly)
         {
             try
             {
                 return assembly.GetTypes()
                     .Where(t => typeof(Migration).IsAssignableFrom(t) && !t.IsAbstract)
                     .Select(Activator.CreateInstance)
-                    .OfType<Migration>()
-                    .Where(m => !MigrationFilters.Any(f => f.Exclude(m)));
+                    .OfType<Migration>();
             }
             catch (Exception exception)
             {
