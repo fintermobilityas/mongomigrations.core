@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.29728.190
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MongoMigrations", "src\MongoMigrations\MongoMigrations.csproj", "{FCB2CF19-EBE7-4DCF-BD48-EC164015BA3F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MongoMigrations.Tests", "MongoMigrations.Tests\MongoMigrations.Tests.csproj", "{AA6C5E8B-E4EC-4A45-A025-1B81F95602C7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{FCB2CF19-EBE7-4DCF-BD48-EC164015BA3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FCB2CF19-EBE7-4DCF-BD48-EC164015BA3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FCB2CF19-EBE7-4DCF-BD48-EC164015BA3F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA6C5E8B-E4EC-4A45-A025-1B81F95602C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA6C5E8B-E4EC-4A45-A025-1B81F95602C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA6C5E8B-E4EC-4A45-A025-1B81F95602C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA6C5E8B-E4EC-4A45-A025-1B81F95602C7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
