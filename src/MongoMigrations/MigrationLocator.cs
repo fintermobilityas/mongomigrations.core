@@ -35,27 +35,27 @@ namespace MongoMigrations
 
         public IEnumerable<Migration> GetAllMigrations()
         {
+            static IEnumerable<Migration> GetMigrationsFromAssembly(Assembly assembly)
+            {
+                if (assembly == null) throw new ArgumentNullException(nameof(assembly));
+                try
+                {
+                    return assembly.GetTypes()
+                        .Where(t => typeof(Migration).IsAssignableFrom(t) && !t.IsAbstract)
+                        .Select(Activator.CreateInstance)
+                        .OfType<Migration>()
+                        .OrderBy(x => x.Version);
+                }
+                catch (Exception exception)
+                {
+                    throw new MigrationException($"Cannot load migrations from assembly: {assembly.FullName}", exception);
+                }
+            }
+
             return _assemblies.SelectMany(GetMigrationsFromAssembly);
         }
 
-        static IEnumerable<Migration> GetMigrationsFromAssembly([NotNull] Assembly assembly)
-        {
-            if (assembly == null) throw new ArgumentNullException(nameof(assembly));
-            try
-            {
-                return assembly.GetTypes()
-                    .Where(t => typeof(Migration).IsAssignableFrom(t) && !t.IsAbstract)
-                    .Select(Activator.CreateInstance)
-                    .OfType<Migration>()
-                    .OrderBy(x => x.Version);
-            }
-            catch (Exception exception)
-            {
-                throw new MigrationException($"Cannot load migrations from assembly: {assembly.FullName}", exception);
-            }
-        }
-
-        public MigrationVersion LatestVersion()
+        public MigrationVersion GetLatestVersion()
         {
             var migrations = GetAllMigrations().ToList();
 

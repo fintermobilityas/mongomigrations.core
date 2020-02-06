@@ -20,7 +20,7 @@ namespace MongoMigrations
         public bool IsNotLatestVersion(out MigrationVersion version)
         {
             version = GetVersion();
-            return _runner.MigrationLocator.LatestVersion() != version;
+            return _runner.MigrationLocator.GetLatestVersion() != version;
         }
 
         [UsedImplicitly]
@@ -32,7 +32,7 @@ namespace MongoMigrations
             }
 
             var databaseVersion = GetVersion();
-            var migrationVersion = _runner.MigrationLocator.LatestVersion();
+            var migrationVersion = _runner.MigrationLocator.GetLatestVersion();
 
             throw new ApplicationException(
                 $"Database is not the expected version, database is at version: {databaseVersion}, migrations are at version: {migrationVersion}");

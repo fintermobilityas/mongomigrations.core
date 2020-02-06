@@ -35,7 +35,7 @@ namespace MongoMigrations
         [UsedImplicitly]
         public void UpdateToLatest()
         {
-            UpdateTo(MigrationLocator.LatestVersion());
+            UpdateTo(MigrationLocator.GetLatestVersion());
         }
 
         public void UpdateTo(MigrationVersion updateToVersion)
