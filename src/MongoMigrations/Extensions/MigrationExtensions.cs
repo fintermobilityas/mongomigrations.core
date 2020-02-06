@@ -1,26 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using JetBrains.Annotations;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using MongoMigrations.Documents;
-using MongoMigrations.WriteModels;
 
 namespace MongoMigrations.Extensions
 {
     [UsedImplicitly]
     public static class MigrationExtensions
     {
-        [UsedImplicitly]
-        internal static IEnumerable<IWriteModel> AsEnumerable(this WriteModel<BsonDocument> writeModel)
-        {
-            return new List<IWriteModel> { new WriteModel(writeModel) };
-        }
-
-        [UsedImplicitly]
         public static BsonDocument ToUpdateDefinitionBsonDocument<TDocument>([NotNull] this UpdateDefinition<TDocument> updateDefinition)
         {
             if (updateDefinition == null) throw new ArgumentNullException(nameof(updateDefinition));
@@ -29,7 +20,6 @@ namespace MongoMigrations.Extensions
             return renderedFilter.AsBsonDocument;
         }
 
-        [UsedImplicitly]
         public static BsonDocument ToFilterDefinitionBsonDocument<TDocument>([NotNull] this FilterDefinition<TDocument> filterDefinition)
         {
             if (filterDefinition == null) throw new ArgumentNullException(nameof(filterDefinition));
@@ -88,26 +78,6 @@ namespace MongoMigrations.Extensions
         }
 
         [UsedImplicitly]
-        public static bool IsDbUpToDate(this IMongoDatabase db, Assembly migrationsAssembly, out MigrationVersion current)
-        {
-            if (db == null) throw new ArgumentNullException(nameof(db));
-            if (migrationsAssembly == null) throw new ArgumentNullException(nameof(migrationsAssembly));
-
-            var runner = new MigrationRunner(db);
-            runner.MigrationLocator.LookForMigrationsInAssembly(migrationsAssembly);
-            return !runner.DatabaseStatus.IsNotLatestVersion(out current);
-        }
-
-        [UsedImplicitly]
-        public static bool IsDbUpToDate(this IMongoDatabase db, Assembly migrationsAssembly)
-        {
-            if (db == null) throw new ArgumentNullException(nameof(db));
-            if (migrationsAssembly == null) throw new ArgumentNullException(nameof(migrationsAssembly));
-
-            return IsDbUpToDate(db, migrationsAssembly, out _);
-        }
-
-        [UsedImplicitly]
         public static bool IsTypeOf([NotNull] this BsonDocument document, [NotNull] string typeName)
         {
             if (document == null) throw new ArgumentNullException(nameof(document));
@@ -160,25 +130,6 @@ namespace MongoMigrations.Extensions
             database.DropCollection(collection.CollectionNamespace.CollectionName);
         }
 
-        [UsedImplicitly]
-        public static IEnumerable<BsonDocument> ToEnumerable([NotNull] this IMongoCollection<BsonDocument> collection, 
-            [NotNull] FilterDefinition<BsonDocument> filterDefinition,
-            SortDefinition<BsonDocument> sortDefinition = null)
-        {
-            if (collection == null) throw new ArgumentNullException(nameof(collection));
-            if (filterDefinition == null) throw new ArgumentNullException(nameof(filterDefinition));
-
-            var cursor = sortDefinition != null ? collection.Find(filterDefinition).Sort(sortDefinition).ToCursor() : collection.Find(filterDefinition).ToCursor();
-
-            while (cursor.MoveNext())
-            {
-                foreach (var document in cursor.Current)
-                {
-                    yield return document;
-                }
-            }
-        }
-
         /// <summary>
         ///     Rename all instances of a name in a bson document to the new name.
         /// </summary>
@@ -199,20 +150,13 @@ namespace MongoMigrations.Extensions
             }
         }
 
-        public static object TryGetDocumentId([NotNull] this BsonDocument bsonDocument)
+        public static object TryGetDocumentId(this BsonDocument bsonDocument)
         {
-            if (bsonDocument == null) throw new ArgumentNullException(nameof(bsonDocument));
-            bsonDocument.TryGetValue("_id", out var id);
-            return id ?? "Cannot find id";
-        }
-
-        [UsedImplicitly]
-        public static void Save([NotNull] this IMongoCollection<BsonDocument> collection, [NotNull] BsonDocument bsonDocument, string id = "_id")
-        {
-            if (collection == null) throw new ArgumentNullException(nameof(collection));
-            if (bsonDocument == null) throw new ArgumentNullException(nameof(bsonDocument));
-            var documentId = bsonDocument.GetValue(id);
-            collection.ReplaceOne(Builders<BsonDocument>.Filter.Eq(x => x[id], documentId), bsonDocument);
+            if (bsonDocument != null && bsonDocument.TryGetValue("_id", out var id))
+            {
+                return id;
+            }
+            return BsonNull.Value;
         }
     }
 }
