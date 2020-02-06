@@ -15,15 +15,14 @@
 // limitations under the License.
 #endregion
 
-// ReSharper disable once CheckNamespace
-namespace MoreLinq
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Linq;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 
-    internal static class EnumerableExtensions
+namespace MongoMigrations.Extensions
+{
+    internal static class MoreLinqExtensions
     {
         /// <summary>
         /// Batches the source sequence into sized buckets.

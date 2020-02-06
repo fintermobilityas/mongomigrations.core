@@ -8,7 +8,6 @@ using MongoDB.Driver;
 using MongoMigrations.Documents;
 using MongoMigrations.Extensions;
 using MongoMigrations.WriteModels;
-using MoreLinq;
 
 namespace MongoMigrations
 {
