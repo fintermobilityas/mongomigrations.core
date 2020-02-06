@@ -80,9 +80,11 @@ namespace MongoMigrations.Extensions
         }
 
         [UsedImplicitly]
-        public static bool IsTypeOf(this MigrationDocument document, [NotNull] string typeName)
+        public static bool IsTypeOf([NotNull] this MigrationDocument document, [NotNull] string typeName)
         {
-           return document.BsonDocument.IsTypeOf(typeName);
+            if (document == null) throw new ArgumentNullException(nameof(document));
+            if (typeName == null) throw new ArgumentNullException(nameof(typeName));
+            return document.BsonDocument.IsTypeOf(typeName);
         }
 
         [UsedImplicitly]
@@ -181,8 +183,12 @@ namespace MongoMigrations.Extensions
         ///     Rename all instances of a name in a bson document to the new name.
         /// </summary>
         [UsedImplicitly]
-        public static void ChangeName(this BsonDocument bsonDocument, string originalName, string newName)
+        public static void ChangeName([NotNull] this BsonDocument bsonDocument, [NotNull] string originalName,
+            [NotNull] string newName)
         {
+            if (bsonDocument == null) throw new ArgumentNullException(nameof(bsonDocument));
+            if (originalName == null) throw new ArgumentNullException(nameof(originalName));
+            if (newName == null) throw new ArgumentNullException(nameof(newName));
             var elements = bsonDocument.Elements
                 .Where(e => e.Name == originalName)
                 .ToList();
@@ -193,15 +199,18 @@ namespace MongoMigrations.Extensions
             }
         }
 
-        public static object TryGetDocumentId(this BsonDocument bsonDocument)
+        public static object TryGetDocumentId([NotNull] this BsonDocument bsonDocument)
         {
+            if (bsonDocument == null) throw new ArgumentNullException(nameof(bsonDocument));
             bsonDocument.TryGetValue("_id", out var id);
             return id ?? "Cannot find id";
         }
 
         [UsedImplicitly]
-        public static void Save(this IMongoCollection<BsonDocument> collection, BsonDocument bsonDocument, string id = "_id")
+        public static void Save([NotNull] this IMongoCollection<BsonDocument> collection, [NotNull] BsonDocument bsonDocument, string id = "_id")
         {
+            if (collection == null) throw new ArgumentNullException(nameof(collection));
+            if (bsonDocument == null) throw new ArgumentNullException(nameof(bsonDocument));
             var documentId = bsonDocument.GetValue(id);
             collection.ReplaceOne(Builders<BsonDocument>.Filter.Eq(x => x[id], documentId), bsonDocument);
         }

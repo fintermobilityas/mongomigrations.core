@@ -188,9 +188,6 @@ namespace MongoMigrations
 
         List<BsonDocument> GetDocuments(int skip = 0)
         {
-            if (BatchSize <= 0)
-                throw new ArgumentOutOfRangeException(nameof(BatchSize), "Must be greater than zero.");
-
             var filterDefinition = Filter ?? FilterDefinition<BsonDocument>.Empty;
             var cursor = Collection.Find(filterDefinition);
 

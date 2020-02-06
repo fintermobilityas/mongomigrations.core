@@ -10,8 +10,9 @@ namespace MongoMigrations
         {
         }
 
-        public AppliedMigration(IMigration migration)
+        public AppliedMigration([NotNull] IMigration migration)
         {
+            if (migration == null) throw new ArgumentNullException(nameof(migration));
             Version = migration.Version;
             StartedOn = DateTime.Now;
             Description = migration.Description;

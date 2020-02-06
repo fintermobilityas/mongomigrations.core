@@ -10,8 +10,7 @@ namespace MongoMigrations
         readonly MigrationRunner _runner;
         IMongoCollection<AppliedMigration> _collection;
 
-        public string VersionCollectionName = "DatabaseVersion";
-        public IMongoCollection<AppliedMigration> Collection => _collection ??= _runner.Database.GetCollection<AppliedMigration>(VersionCollectionName);
+        public IMongoCollection<AppliedMigration> Collection => _collection ??= _runner.Database.GetCollection<AppliedMigration>("DatabaseVersion");
 
         public DatabaseMigrationStatus([NotNull] MigrationRunner runner)
         {
@@ -54,15 +53,17 @@ namespace MongoMigrations
                 .FirstOrDefault();
         }
 
-        public AppliedMigration StartMigration(IMigration migration)
+        public AppliedMigration StartMigration([NotNull] IMigration migration)
         {
+            if (migration == null) throw new ArgumentNullException(nameof(migration));
             var appliedMigration = new AppliedMigration(migration);
             Collection.InsertOne(appliedMigration);
             return appliedMigration;
         }
 
-        public void CompleteMigration(AppliedMigration appliedMigration)
+        public void CompleteMigration([NotNull] AppliedMigration appliedMigration)
         {
+            if (appliedMigration == null) throw new ArgumentNullException(nameof(appliedMigration));
             appliedMigration.CompletedOn = DateTime.Now;
             Collection.UpdateOne(Builders<AppliedMigration>.Filter.Eq(x => x.Version, appliedMigration.Version),
                 Builders<AppliedMigration>.Update.Set(x => x.CompletedOn, appliedMigration.CompletedOn));

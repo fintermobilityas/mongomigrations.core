@@ -1,3 +1,5 @@
+using System;
+using JetBrains.Annotations;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 
@@ -5,14 +7,16 @@ namespace MongoMigrations
 {
     public class MigrationVersionSerializer : SerializerBase<MigrationVersion>
     {
-        public override MigrationVersion Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
+        public override MigrationVersion Deserialize([NotNull] BsonDeserializationContext context, BsonDeserializationArgs args)
         {
+            if (context == null) throw new ArgumentNullException(nameof(context));
             var versionString = context.Reader.ReadString();
             return new MigrationVersion(versionString);
         }
 
-        public override void Serialize(BsonSerializationContext context, BsonSerializationArgs args, MigrationVersion value)
+        public override void Serialize([NotNull] BsonSerializationContext context, BsonSerializationArgs args, MigrationVersion value)
         {
+            if (context == null) throw new ArgumentNullException(nameof(context));
             var versionString = $"{value.Major}.{value.Minor}.{value.Revision}";
             context.Writer.WriteString(versionString);
         }
