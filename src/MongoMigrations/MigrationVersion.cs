@@ -5,33 +5,33 @@ namespace MongoMigrations
 {
     public struct MigrationVersion : IComparable<MigrationVersion>
     {
-        /// <summary>
-        ///     Return the default, "first" version 0.0.0
-        /// </summary>
-        /// <returns></returns>
-        public static MigrationVersion Default()
-        {
-            return new MigrationVersion(0);
-        }
+        public int Major { get; }
+        public int Minor { get; }
+        public int Revision { get; }
 
-        public readonly int Major;
-        public readonly int Minor;
-        public readonly int Revision;
+        public static MigrationVersion Default => new MigrationVersion(0);
 
         public MigrationVersion(string version)
         {
             var versionParts = version?.Split('.') ?? Array.Empty<string>();
+
             if (versionParts.Length != 3)
                 throw new ArgumentException($"Versions must have format: major.minor.revision, this doesn\'t match: {version}", nameof(version));
+
             var majorString = versionParts[0];
-            if (!int.TryParse(majorString, out Major))
+            if (!int.TryParse(majorString, out var major))
                 throw new ArgumentException($"Invalid major version value: {majorString}", nameof(version));
+            Major = major;
+
             var minorString = versionParts[1];
-            if (!int.TryParse(minorString, out Minor))
+            if (!int.TryParse(minorString, out var minor))
                 throw new ArgumentException($"Invalid major version value: {minorString}", nameof(version));
+            Minor = minor;
+
             var revisionString = versionParts[2];
-            if (!int.TryParse(revisionString, out Revision))
+            if (!int.TryParse(revisionString, out var revision))
                 throw new ArgumentException($"Invalid major version value: {revisionString}", nameof(version));
+            Revision = revision;
         }
 
         public MigrationVersion(int major, int minor = 0, int revision = 0)
@@ -39,6 +39,7 @@ namespace MongoMigrations
             if (major < 0) throw new ArgumentOutOfRangeException(nameof(major));
             if (revision < 0) throw new ArgumentOutOfRangeException(nameof(revision));
             if (minor < 0) throw new ArgumentOutOfRangeException(nameof(minor));
+
             Major = major;
             Minor = minor;
             Revision = revision;

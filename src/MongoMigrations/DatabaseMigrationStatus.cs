@@ -26,7 +26,7 @@ namespace MongoMigrations
         public MigrationVersion GetVersion()
         {
             var lastAppliedMigration = GetLastAppliedMigration();
-            return lastAppliedMigration?.Version ?? MigrationVersion.Default();
+            return lastAppliedMigration?.Version ?? MigrationVersion.Default;
         }
 
         public AppliedMigration GetLastAppliedMigration()

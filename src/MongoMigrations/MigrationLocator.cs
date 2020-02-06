@@ -81,7 +81,7 @@ namespace MongoMigrations
         {
             var migrations = GetAllMigrations().ToList();
 
-            return !migrations.Any() ? MigrationVersion.Default() : migrations.Max(m => m.Version);
+            return !migrations.Any() ? MigrationVersion.Default : migrations.Max(m => m.Version);
         }
 
         public IEnumerable<Migration> GetMigrationsAfter([NotNull] AppliedMigration version)

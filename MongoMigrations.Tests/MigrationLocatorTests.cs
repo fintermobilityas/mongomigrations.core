@@ -40,7 +40,7 @@ namespace MongoMigrations.Tests
             Assert.Empty(_migrationLocator.GetAllMigrations());
 
             var latestVersion = _migrationLocator.GetLatestVersion();
-            Assert.Equal(MigrationVersion.Default(), latestVersion);
+            Assert.Equal(MigrationVersion.Default, latestVersion);
         }
 
         void AddMigrations()

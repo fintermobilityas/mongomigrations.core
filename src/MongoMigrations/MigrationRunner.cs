@@ -9,9 +9,9 @@ namespace MongoMigrations
 {
     public sealed class MigrationRunner
     {
-        public IMongoDatabase Database { get; [UsedImplicitly]set; }
-        public MigrationLocator MigrationLocator { get; [UsedImplicitly]set; }
-        public DatabaseMigrationStatus DatabaseStatus { get; [UsedImplicitly]set; }
+        public IMongoDatabase Database { get; }
+        public MigrationLocator MigrationLocator { get; }
+        public DatabaseMigrationStatus DatabaseStatus { get; }
         
         static MigrationRunner()
         {
