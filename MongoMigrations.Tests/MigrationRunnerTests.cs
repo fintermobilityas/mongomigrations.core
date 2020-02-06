@@ -1,4 +1,10 @@
-﻿using MongoMigrations.Tests.Fixtures;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using MongoMigrations.Extensions;
+using MongoMigrations.Tests.Fixtures;
 using Moq;
 using Xunit;
 
@@ -22,10 +28,10 @@ namespace MongoMigrations.Tests
         }
 
         [Fact]
-        public void TestGetMigrations_IsSortedByNewestVersion()
+        public void TestGetMigrations_IsSortedByOldestVersion()
         {
             using var fixture = new MigrationRunnerFixture(_databaseFixture);
-            
+
             var migration1Mock = new Mock<IMigration>();
             migration1Mock.SetupGet(x => x.Version).Returns(new MigrationVersion(1));
 
@@ -38,8 +44,8 @@ namespace MongoMigrations.Tests
             var migrations = fixture.MigrationRunner.DatabaseStatus.GetMigrations();
             Assert.Equal(2, migrations.Count);
 
-            Assert.Equal(2, migrations[0].Version.Version);
-            Assert.Equal(1, migrations[1].Version.Version);
+            Assert.Equal(1, migrations[0].Version.Version);
+            Assert.Equal(2, migrations[1].Version.Version);
         }
 
         [Fact]
@@ -57,6 +63,126 @@ namespace MongoMigrations.Tests
             fixture.Collection.InsertOne(new AppliedMigration(migration2Mock.Object));
 
             Assert.Equal(2, fixture.MigrationRunner.DatabaseStatus.GetLastAppliedMigration().Version.Version);
+        }
+
+        [Fact]
+        public void TestUpdateToLatest()
+        {
+            var migration1Mock = new Mock<IMigration>();
+            migration1Mock.SetupGet(x => x.Version).Returns(new MigrationVersion(1));
+            migration1Mock.SetupGet(x => x.Database).Returns(_databaseFixture.Database);
+
+            var migration2Mock = new Mock<IMigration>();
+            migration2Mock.SetupGet(x => x.Version).Returns(new MigrationVersion(2));
+            migration2Mock.SetupGet(x => x.Database).Returns(_databaseFixture.Database);
+
+            var migrationLocator = new MigrationLocator(typeof(MigrationLocatorTests).Assembly, new List<IMigration>
+            {
+                migration1Mock.Object,
+                migration2Mock.Object
+            });
+
+            using var fixture = new MigrationRunnerFixture(_databaseFixture, migrationLocator);
+            fixture.Collection.InsertOne(new AppliedMigration(migration1Mock.Object) { CompletedOn = DateTime.Now });
+
+            var migrations = fixture.MigrationRunner.DatabaseStatus.GetMigrations();
+            Assert.Single(migrations);
+
+            fixture.MigrationRunner.UpdateToLatest();
+
+            migrations = fixture.MigrationRunner.DatabaseStatus.GetMigrations();
+            Assert.Equal(2, migrations.Count);
+
+            Assert.Equal(1, migrations[0].Version.Version);
+            Assert.NotNull(migrations[0].CompletedOn);
+            Assert.Equal(2, migrations[1].Version.Version);
+            Assert.NotNull(migrations[1].CompletedOn);
+        }
+
+        [Fact]
+        public void TestUpdateToLatest_No_Prior_Migrations()
+        {
+            var migration1Mock = new Mock<IMigration>();
+            migration1Mock.SetupGet(x => x.Version).Returns(new MigrationVersion(1));
+            migration1Mock.SetupGet(x => x.Database).Returns(_databaseFixture.Database);
+
+            var migrationLocator = new MigrationLocator(typeof(MigrationLocatorTests).Assembly, new List<IMigration> { migration1Mock.Object });
+
+            using var fixture = new MigrationRunnerFixture(_databaseFixture, migrationLocator);
+
+            var migrations = fixture.MigrationRunner.DatabaseStatus.GetMigrations();
+            Assert.Empty(migrations);
+
+            fixture.MigrationRunner.UpdateToLatest();
+
+            migrations = fixture.MigrationRunner.DatabaseStatus.GetMigrations();
+            Assert.Single(migrations);
+            Assert.Equal(1, migrations[0].Version.Version);
+            Assert.NotNull(migrations[0].CompletedOn);
+        }
+
+        [Fact]
+        public void TestUpdateLatest_Is_Thread_Safe()
+        {
+            var random = new Random();
+
+            var mocks = Enumerable.Range(0, 1000).Select(version =>
+            {
+                var mock = new Mock<IMigration>();
+                mock.SetupGet(x => x.Version).Returns(new MigrationVersion(version));
+                mock.SetupGet(x => x.Database).Returns(_databaseFixture.Database);
+                mock.Setup(x => x.Update()).Callback(() => Thread.Sleep(random.Next(1, 5)));
+                return mock;
+            }).ToList();
+
+            var migrationLocator = new MigrationLocator(typeof(MigrationLocatorTests).Assembly, mocks.Select(x => x.Object).ToList());
+
+            using var fixture = new MigrationRunnerFixture(_databaseFixture, migrationLocator);
+
+            var concurrentMigrationExceptionsThrown = new ConcurrentQueue<ConcurrentMigrationException>();
+            long migrationCompleted = 0;
+
+            void TryMigrate(string serverName)
+            {
+                while (Interlocked.Read(ref migrationCompleted) == 0)
+                {
+                    try
+                    {
+                        fixture.MigrationRunner.UpdateToLatest(serverName);
+                        Interlocked.Exchange(ref migrationCompleted, 1);
+                    }
+                    catch (ConcurrentMigrationException e)
+                    {
+                        concurrentMigrationExceptionsThrown.Enqueue(e);
+                    }
+                }
+            }
+
+            new Thread(() => TryMigrate("thread1")) { IsBackground = true }.Start();
+            new Thread(() => TryMigrate("thread2")) { IsBackground = true }.Start();
+            new Thread(() => TryMigrate("thread3")) { IsBackground = true }.Start();
+            new Thread(() => TryMigrate("thread4")) { IsBackground = true }.Start();
+
+            while (Interlocked.Read(ref migrationCompleted) != 1)
+            {
+                Thread.Sleep(50);
+            }
+
+            var migrations = fixture.MigrationRunner.DatabaseStatus.GetMigrations();
+            Assert.Equal(mocks.Count, migrations.Count);
+            Assert.NotEmpty(concurrentMigrationExceptionsThrown);
+
+            var serverNames = migrations.Select(x => x.ServerName).Distinct().ToList();
+            Assert.Equal(4, serverNames.Count);
+            Assert.StartsWith("thread", serverNames[0]);
+
+            foreach (var migration in migrations)
+            {
+                Assert.NotNull(migration.CompletedOn);
+            }
+
+            var migrationsSortedByStartedOn = migrations.OrderBy(x => x.StartedOn).Select(x => x.Version.Version).ToList();
+            Assert.True(migrationsSortedByStartedOn.IsMonotonicallyIncreasing());
         }
     }
 }

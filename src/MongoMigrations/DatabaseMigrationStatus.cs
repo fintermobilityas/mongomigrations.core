@@ -1,19 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using JetBrains.Annotations;
 using MongoDB.Driver;
 
 namespace MongoMigrations
 {
-    public sealed class DatabaseMigrationStatus
+    [SuppressMessage("ReSharper", "UnusedMemberInSuper.Global")]
+    [SuppressMessage("ReSharper", "UnusedMember.Global")]
+    public interface IDatabaseMigrationStatus
     {
-        readonly MigrationRunner _runner;
+        string CollectionName { get; }
+        IMongoCollection<AppliedMigration> Collection { get; }
+        bool IsNotLatestVersion(out MigrationVersion version);
+        MigrationVersion GetVersion();
+        List<AppliedMigration> GetMigrations();
+        AppliedMigration GetLastAppliedMigration();
+        AppliedMigration StartMigration([NotNull] IMigration migration, string serverName);
+        void CompleteMigration([NotNull] AppliedMigration appliedMigration);
+    }
+
+    public sealed class DatabaseMigrationStatus : IDatabaseMigrationStatus
+    {
+        readonly IMigrationRunner _runner;
         IMongoCollection<AppliedMigration> _collection;
 
         public string CollectionName { get; }
         public IMongoCollection<AppliedMigration> Collection => _collection ??= _runner.Database.GetCollection<AppliedMigration>(CollectionName);
 
-        public DatabaseMigrationStatus([NotNull] MigrationRunner runner, [NotNull] string collectionName)
+        public DatabaseMigrationStatus([NotNull] IMigrationRunner runner, [NotNull] string collectionName)
         {
             if (string.IsNullOrWhiteSpace(collectionName))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(collectionName));
@@ -37,7 +52,7 @@ namespace MongoMigrations
         {
             return Collection
                 .Find(FilterDefinition<AppliedMigration>.Empty)
-                .SortByDescending(v => v.Version)
+                .SortBy(v => v.Version)
                 .ToList();
         }
 
@@ -49,15 +64,18 @@ namespace MongoMigrations
                 .FirstOrDefault();
         }
 
-        public AppliedMigration StartMigration([NotNull] IMigration migration)
+        public AppliedMigration StartMigration(IMigration migration, string serverName)
         {
             if (migration == null) throw new ArgumentNullException(nameof(migration));
-            var appliedMigration = new AppliedMigration(migration);
+            var appliedMigration = new AppliedMigration(migration)
+            {
+                ServerName = serverName
+            };
             Collection.InsertOne(appliedMigration);
             return appliedMigration;
         }
 
-        public void CompleteMigration([NotNull] AppliedMigration appliedMigration)
+        public void CompleteMigration(AppliedMigration appliedMigration)
         {
             if (appliedMigration == null) throw new ArgumentNullException(nameof(appliedMigration));
             appliedMigration.CompletedOn = DateTime.Now;

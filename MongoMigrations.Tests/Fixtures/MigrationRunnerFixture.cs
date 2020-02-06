@@ -8,15 +8,15 @@ namespace MongoMigrations.Tests.Fixtures
         readonly DatabaseFixture _databaseFixture;
         readonly string _collectionName;
 
-        public MigrationRunner MigrationRunner { get; }
+        public IMigrationRunner MigrationRunner { get; }
         public IMongoCollection<AppliedMigration> Collection => MigrationRunner.DatabaseStatus.Collection;
 
-        public MigrationRunnerFixture(DatabaseFixture databaseFixture)
+        public MigrationRunnerFixture(DatabaseFixture databaseFixture, IMigrationLocator migrationLocator = null)
         {
             _databaseFixture = databaseFixture;
             _collectionName = Guid.NewGuid().ToString();
 
-            MigrationRunner = new MigrationRunner(databaseFixture.Database, _collectionName);
+            MigrationRunner = new MigrationRunner(databaseFixture.Database, _collectionName, migrationLocator);
         }
 
         public void Dispose()

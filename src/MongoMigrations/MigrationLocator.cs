@@ -1,22 +1,41 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
 
 namespace MongoMigrations
 {
-    public sealed class MigrationLocator
+    [SuppressMessage("ReSharper", "UnusedMember.Global")]
+    [SuppressMessage("ReSharper", "UnusedMemberInSuper.Global")]
+    public interface IMigrationLocator
+    {
+        void LookForMigrationsInAssemblyOfType<T>();
+        void LookForMigrationsInAssembly([NotNull] Assembly assembly);
+        IEnumerable<IMigration> GetAllMigrations();
+        MigrationVersion GetLatestVersion();
+        IEnumerable<IMigration> GetMigrationsAfter([NotNull] AppliedMigration appliedMigration);
+    }
+
+    public sealed class MigrationLocator : IMigrationLocator
     {
         readonly List<Assembly> _assemblies;
-        readonly Dictionary<string, List<Migration>> _migrationsDictionary;
+        readonly Dictionary<string, List<IMigration>> _migrationsDictionary;
         readonly object _syncRoot;
 
         public MigrationLocator()
         {
             _assemblies = new List<Assembly>();
-            _migrationsDictionary = new Dictionary<string, List<Migration>>();
+            _migrationsDictionary = new Dictionary<string, List<IMigration>>();
             _syncRoot = new object();
+        }
+
+        internal MigrationLocator([NotNull] Assembly assembly, [NotNull] List<IMigration> migrations) : this()
+        {
+            if (assembly == null) throw new ArgumentNullException(nameof(assembly));
+            _assemblies.Add(assembly);
+            _migrationsDictionary[assembly.FullName] = migrations ?? throw new ArgumentNullException(nameof(migrations));
         }
 
         [UsedImplicitly]
@@ -26,7 +45,7 @@ namespace MongoMigrations
             LookForMigrationsInAssembly(assembly);
         }
 
-        public void LookForMigrationsInAssembly([NotNull] Assembly assembly)
+        public void LookForMigrationsInAssembly(Assembly assembly)
         {
             if (assembly == null) throw new ArgumentNullException(nameof(assembly));
 
@@ -39,9 +58,9 @@ namespace MongoMigrations
             }
         }
 
-        public IEnumerable<Migration> GetAllMigrations()
+        public IEnumerable<IMigration> GetAllMigrations()
         {
-            static List<Migration> FindMigrations(Assembly assembly)
+            static List<IMigration> FindMigrations(Assembly assembly)
             {
                 if (assembly == null) throw new ArgumentNullException(nameof(assembly));
 
@@ -52,6 +71,7 @@ namespace MongoMigrations
                         .Select(Activator.CreateInstance)
                         .OfType<Migration>()
                         .OrderBy(x => x.Version)
+                        .Cast<IMigration>()
                         .ToList();
                 }
                 catch (Exception exception)
@@ -84,11 +104,17 @@ namespace MongoMigrations
             return !migrations.Any() ? MigrationVersion.Default : migrations.Max(m => m.Version);
         }
 
-        public IEnumerable<Migration> GetMigrationsAfter([NotNull] AppliedMigration version)
+        public IEnumerable<IMigration> GetMigrationsAfter(AppliedMigration appliedMigration)
         {
-            if (version == null) throw new ArgumentNullException(nameof(version));
+            var migrations = GetAllMigrations();
 
-            return GetAllMigrations().Where(m => m.Version > version.Version).OrderBy(m => m.Version);
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+            if (appliedMigration != null)
+            {
+                migrations = migrations.Where(x => x.Version > appliedMigration.Version);
+            }
+
+            return migrations.OrderBy(m => m.Version);
         }
     }
 }

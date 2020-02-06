@@ -4,10 +4,11 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace MongoMigrations
 {
-    public class AppliedMigration
-    {
+    public sealed class AppliedMigration
+    { 
         AppliedMigration()
         {
+            
         }
 
         public AppliedMigration([NotNull] IMigration migration)
@@ -25,6 +26,7 @@ namespace MongoMigrations
         [UsedImplicitly]
         public DateTime StartedOn { get; set; }
         public DateTime? CompletedOn { get; set; }
+        public string ServerName { get; set; }
 
         public override string ToString()
         {

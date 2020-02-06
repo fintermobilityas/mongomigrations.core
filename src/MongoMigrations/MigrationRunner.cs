@@ -7,11 +7,19 @@ using MongoDB.Driver;
 
 namespace MongoMigrations
 {
-    public sealed class MigrationRunner
+    public interface IMigrationRunner
+    {
+        IMongoDatabase Database { get; }
+        IMigrationLocator MigrationLocator { get; }
+        IDatabaseMigrationStatus DatabaseStatus { get; }
+        void UpdateToLatest(string serverName = null);
+    }
+
+    public sealed class MigrationRunner : IMigrationRunner
     {
         public IMongoDatabase Database { get; }
-        public MigrationLocator MigrationLocator { get; }
-        public DatabaseMigrationStatus DatabaseStatus { get; }
+        public IMigrationLocator MigrationLocator { get; }
+        public IDatabaseMigrationStatus DatabaseStatus { get; }
         
         static MigrationRunner()
         {
@@ -25,26 +33,21 @@ namespace MongoMigrations
             if (database == null) throw new ArgumentNullException(nameof(database));
         }
 
-        public MigrationRunner([NotNull] IMongoDatabase database, string collectionName = "DatabaseVersion")
+        public MigrationRunner([NotNull] IMongoDatabase database, string collectionName = "DatabaseVersion", IMigrationLocator migrationLocator = null)
         {
             Database = database ?? throw new ArgumentNullException(nameof(database));
             DatabaseStatus = new DatabaseMigrationStatus(this, collectionName);
-            MigrationLocator = new MigrationLocator();
+            MigrationLocator = migrationLocator ?? new MigrationLocator();
         }
 
-        [UsedImplicitly]
-        public void UpdateToLatest()
+        public void UpdateToLatest(string serverName = null)
         {
-            UpdateTo(MigrationLocator.GetLatestVersion());
+            UpdateTo(MigrationLocator.GetLatestVersion(), serverName);
         }
 
-        public void UpdateTo(MigrationVersion updateToVersion)
+        void UpdateTo(MigrationVersion updateToVersion, string serverName)
         {
             var lastAppliedMigration = DatabaseStatus.GetLastAppliedMigration();
-            if (lastAppliedMigration == null)
-            {
-                return;
-            }
 
             var migrations = MigrationLocator
                 .GetMigrationsAfter(lastAppliedMigration)
@@ -53,33 +56,54 @@ namespace MongoMigrations
 
             foreach (var migration in migrations)
             {
-                ApplyMigration(migration);
+                ApplyMigration(migration, serverName);
             }
 
-            void ApplyMigration(Migration migration)
+            static void InvokeIf<TFeature>(IMigration migration, Action<TFeature> action) where TFeature : IMigrationInvokable
             {
-                var appliedMigration = DatabaseStatus.StartMigration(migration);
-                migration.Database = Database;
+                if (!(migration is TFeature tFeature)) return;
+                action?.Invoke(tFeature);
+            }
+
+            void ApplyMigration(IMigration migrationToApply, string serverName)
+            {
+                if (migrationToApply == null) throw new ArgumentNullException(nameof(migrationToApply));
+
+                AppliedMigration appliedMigration;
+                try
+                {
+                    appliedMigration = DatabaseStatus.StartMigration(migrationToApply, serverName);
+                }
+                catch (MongoWriteException e) when (e.Message.Contains("E11000")) // Duplicate key
+                {
+                    throw new ConcurrentMigrationException(migrationToApply.Version, e);
+                }
+
+                if (migrationToApply is Migration migration)
+                {
+                    migration.Database = Database;
+                }
 
                 try
                 {
-                    if (migration is CollectionMigration collectionMigration)
+                    if (migrationToApply is CollectionMigration collectionMigrationToApply)
                     {
-                        collectionMigration.Collection = Database.GetCollection<BsonDocument>(collectionMigration.CollectionName);
+                        collectionMigrationToApply.Collection = Database.GetCollection<BsonDocument>(collectionMigrationToApply.CollectionName);
                     }
 
-                    InvokeIf<ISupportOnBeforeMigration>(migration, x => x.OnBeforeMigration());
-                    migration.Update();
-                    InvokeIf<ISupportOnAfterSuccessfullMigration>(migration, x => x.OnAfterSuccessfulMigration());
+                    InvokeIf<ISupportOnBeforeMigration>(migrationToApply, x => x.OnBeforeMigration());
+                    migrationToApply.Update();
+                    InvokeIf<ISupportOnAfterSuccessfullMigration>(migrationToApply, x => x.OnAfterSuccessfulMigration());
+
                 }
                 catch (Exception exception)
                 {
                     var message = new
                     {
                         Message = $"Migration failed to be applied: {exception.Message}",
-                        migration.Version,
-                        Name = migration.GetType(),
-                        migration.Description,
+                        migrationToApply.Version,
+                        Name = migrationToApply.GetType(),
+                        migrationToApply.Description,
                         Database.DatabaseNamespace.DatabaseName
                     };
 
@@ -88,15 +112,6 @@ namespace MongoMigrations
 
                 DatabaseStatus.CompleteMigration(appliedMigration);
             }
-        }
-
-        public bool InvokeIf<TFeature>(IMigration migration, Action<TFeature> action) where TFeature : IMigrationInvokable
-        {
-            if (!(migration is TFeature tFeature))
-                return false;
-
-            action?.Invoke(tFeature);
-            return true;
         }
 
     }
