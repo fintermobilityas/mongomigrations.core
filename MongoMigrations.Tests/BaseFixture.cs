@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-
-namespace MongoMigrations.Tests
+﻿namespace MongoMigrations.Tests
 {
     public sealed class BaseFixture
     {

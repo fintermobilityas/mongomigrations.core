@@ -10,15 +10,14 @@ namespace MongoMigrations
         public override MigrationVersion Deserialize([NotNull] BsonDeserializationContext context, BsonDeserializationArgs args)
         {
             if (context == null) throw new ArgumentNullException(nameof(context));
-            var versionString = context.Reader.ReadString();
+            var versionString = context.Reader.ReadInt32();
             return new MigrationVersion(versionString);
         }
 
         public override void Serialize([NotNull] BsonSerializationContext context, BsonSerializationArgs args, MigrationVersion value)
         {
             if (context == null) throw new ArgumentNullException(nameof(context));
-            var versionString = $"{value.Major}.{value.Minor}.{value.Revision}";
-            context.Writer.WriteString(versionString);
+            context.Writer.WriteInt32(value.Version);
         }
     }
 }

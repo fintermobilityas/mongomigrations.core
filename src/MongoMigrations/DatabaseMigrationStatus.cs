@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using JetBrains.Annotations;
 using MongoDB.Driver;
 
@@ -10,10 +9,14 @@ namespace MongoMigrations
         readonly MigrationRunner _runner;
         IMongoCollection<AppliedMigration> _collection;
 
-        public IMongoCollection<AppliedMigration> Collection => _collection ??= _runner.Database.GetCollection<AppliedMigration>("DatabaseVersion");
+        public string CollectionName { get; }
+        public IMongoCollection<AppliedMigration> Collection => _collection ??= _runner.Database.GetCollection<AppliedMigration>(CollectionName);
 
-        public DatabaseMigrationStatus([NotNull] MigrationRunner runner)
+        public DatabaseMigrationStatus([NotNull] MigrationRunner runner, [NotNull] string collectionName)
         {
+            if (string.IsNullOrWhiteSpace(collectionName))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(collectionName));
+            CollectionName = collectionName;
             _runner = runner ?? throw new ArgumentNullException(nameof(runner));
         }
 
@@ -33,8 +36,7 @@ namespace MongoMigrations
         {
             return Collection
                 .Find(FilterDefinition<AppliedMigration>.Empty)
-                .ToList() // in memory but this will never get big enough to matter
-                .OrderByDescending(v => v.Version)
+                .SortByDescending(v => v.Version)
                 .FirstOrDefault();
         }
 

@@ -31,7 +31,7 @@ namespace MongoMigrations.Tests
 
             var latestVersion = _migrationLocator.GetLatestVersion();
             Assert.Equal(new MigrationVersion(1), latestVersion);
-            Assert.Equal(1, latestVersion.Major);
+            Assert.Equal(1, latestVersion.Version);
         }
 
         [Fact]

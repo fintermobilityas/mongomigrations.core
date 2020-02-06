@@ -25,10 +25,10 @@ namespace MongoMigrations
             if (database == null) throw new ArgumentNullException(nameof(database));
         }
 
-        public MigrationRunner([NotNull] IMongoDatabase database)
+        public MigrationRunner([NotNull] IMongoDatabase database, string collectionName = "DatabaseVersion")
         {
             Database = database ?? throw new ArgumentNullException(nameof(database));
-            DatabaseStatus = new DatabaseMigrationStatus(this);
+            DatabaseStatus = new DatabaseMigrationStatus(this, collectionName);
             MigrationLocator = new MigrationLocator();
         }
 
