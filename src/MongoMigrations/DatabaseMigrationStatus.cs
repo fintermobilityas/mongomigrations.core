@@ -12,8 +12,6 @@ namespace MongoMigrations
     {
         string CollectionName { get; }
         IMongoCollection<AppliedMigration> Collection { get; }
-        bool IsNotLatestVersion(out MigrationVersion version);
-        MigrationVersion GetVersion();
         List<AppliedMigration> GetMigrations();
         AppliedMigration GetLastAppliedMigration();
         AppliedMigration StartMigration([NotNull] IMigration migration, string serverName);
@@ -34,18 +32,6 @@ namespace MongoMigrations
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(collectionName));
             CollectionName = collectionName;
             _runner = runner ?? throw new ArgumentNullException(nameof(runner));
-        }
-
-        public bool IsNotLatestVersion(out MigrationVersion version)
-        {
-            version = GetVersion();
-            return _runner.MigrationLocator.GetLatestVersion() != version;
-        }
-
-        public MigrationVersion GetVersion()
-        {
-            var lastAppliedMigration = GetLastAppliedMigration();
-            return lastAppliedMigration?.Version ?? MigrationVersion.Default;
         }
 
         public List<AppliedMigration> GetMigrations()

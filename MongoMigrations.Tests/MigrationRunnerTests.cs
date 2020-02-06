@@ -90,6 +90,8 @@ namespace MongoMigrations.Tests
 
             fixture.MigrationRunner.UpdateToLatest();
 
+            Assert.True(fixture.MigrationRunner.IsDatabaseUpToDate());
+
             migrations = fixture.MigrationRunner.DatabaseStatus.GetMigrations();
             Assert.Equal(2, migrations.Count);
 
@@ -114,6 +116,8 @@ namespace MongoMigrations.Tests
             Assert.Empty(migrations);
 
             fixture.MigrationRunner.UpdateToLatest();
+
+            Assert.True(fixture.MigrationRunner.IsDatabaseUpToDate());
 
             migrations = fixture.MigrationRunner.DatabaseStatus.GetMigrations();
             Assert.Single(migrations);
@@ -167,6 +171,8 @@ namespace MongoMigrations.Tests
             {
                 Thread.Sleep(50);
             }
+
+            Assert.True(fixture.MigrationRunner.IsDatabaseUpToDate());
 
             var migrations = fixture.MigrationRunner.DatabaseStatus.GetMigrations();
             Assert.Equal(mocks.Count, migrations.Count);

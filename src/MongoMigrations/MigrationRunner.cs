@@ -13,6 +13,7 @@ namespace MongoMigrations
         IMigrationLocator MigrationLocator { get; }
         IDatabaseMigrationStatus DatabaseStatus { get; }
         void UpdateToLatest(string serverName = null);
+        bool IsDatabaseUpToDate();
     }
 
     public sealed class MigrationRunner : IMigrationRunner
@@ -38,6 +39,13 @@ namespace MongoMigrations
             Database = database ?? throw new ArgumentNullException(nameof(database));
             DatabaseStatus = new DatabaseMigrationStatus(this, collectionName);
             MigrationLocator = migrationLocator ?? new MigrationLocator();
+        }
+
+        public bool IsDatabaseUpToDate()
+        {
+            var lastMigration = DatabaseStatus.GetLastAppliedMigration();
+            var currentMigrationVersion = MigrationLocator.GetLatestVersion();
+            return lastMigration?.CompletedOn != null && lastMigration.Version.Equals(currentMigrationVersion);
         }
 
         public void UpdateToLatest(string serverName = null)
