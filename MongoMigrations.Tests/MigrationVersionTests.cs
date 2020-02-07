@@ -8,7 +8,7 @@ namespace MongoMigrations.Tests
         public void TestDefault()
         {
             Assert.Equal(new MigrationVersion(0), MigrationVersion.Default);
-            Assert.Equal(new object(), MigrationVersion.Default);
+            Assert.NotEqual(new object(), MigrationVersion.Default);
             Assert.Equal(0, MigrationVersion.Default.Version);
             Assert.Equal(0, new MigrationVersion(0).Version);
         }

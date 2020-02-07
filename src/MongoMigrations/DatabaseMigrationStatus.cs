@@ -12,7 +12,9 @@ namespace MongoMigrations
     {
         string CollectionName { get; }
         IMongoCollection<AppliedMigration> Collection { get; }
+        void AddIndexes();
         List<AppliedMigration> GetMigrations();
+        bool IsMigrationInProgress();
         AppliedMigration GetLastAppliedMigration();
         AppliedMigration StartMigration([NotNull] IMigration migration, string serverName);
         void CompleteMigration([NotNull] AppliedMigration appliedMigration);
@@ -34,6 +36,11 @@ namespace MongoMigrations
             _runner = runner ?? throw new ArgumentNullException(nameof(runner));
         }
 
+        public void AddIndexes()
+        {
+            Collection.Indexes.CreateOne(new CreateIndexModel<AppliedMigration>(new IndexKeysDefinitionBuilder<AppliedMigration>().Ascending(x => x.CompletedOn)));
+        }
+
         public List<AppliedMigration> GetMigrations()
         {
             return Collection
@@ -48,6 +55,13 @@ namespace MongoMigrations
                 .Find(FilterDefinition<AppliedMigration>.Empty)
                 .SortByDescending(v => v.Version)
                 .FirstOrDefault();
+        }
+
+        public bool IsMigrationInProgress()
+        {
+            return Collection
+                .Find(Builders<AppliedMigration>.Filter.Eq(x => x.CompletedOn, null))
+                .CountDocuments() > 0;
         }
 
         public AppliedMigration StartMigration(IMigration migration, string serverName)

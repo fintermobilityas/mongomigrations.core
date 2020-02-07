@@ -43,8 +43,13 @@ namespace MongoMigrations
 
         public bool IsDatabaseUpToDate()
         {
-            var lastMigration = DatabaseStatus.GetLastAppliedMigration();
+            if (DatabaseStatus.IsMigrationInProgress())
+            {
+                return false;
+            }
+
             var currentMigrationVersion = MigrationLocator.GetLatestVersion();
+            var lastMigration = DatabaseStatus.GetLastAppliedMigration();
             return lastMigration?.CompletedOn != null && lastMigration.Version.Equals(currentMigrationVersion);
         }
 

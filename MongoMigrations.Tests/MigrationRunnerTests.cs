@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using MongoDB.Driver;
 using MongoMigrations.Extensions;
 using MongoMigrations.Tests.Fixtures;
 using Moq;
@@ -17,6 +18,20 @@ namespace MongoMigrations.Tests
         public MigrationRunnerTests(DatabaseFixture databaseFixture)
         {
             _databaseFixture = databaseFixture;
+        }
+
+        [Fact]
+        public void TestAddIndexes()
+        {
+            using var fixture = new MigrationRunnerFixture(_databaseFixture);
+
+            fixture.MigrationRunner.DatabaseStatus.AddIndexes();
+            fixture.MigrationRunner.DatabaseStatus.AddIndexes();
+
+            var index = fixture.MigrationRunner.DatabaseStatus.Collection.Indexes
+                .List().ToList().Select(x => x["name"].AsString).SingleOrDefault(x => x == "CompletedOn_1");
+
+            Assert.NotNull(index);
         }
 
         [Fact]
@@ -190,7 +205,7 @@ namespace MongoMigrations.Tests
                 Assert.NotNull(migration.CompletedOn);
             }
 
-            var migrationsSortedByStartedOn = migrations.OrderBy(x => x.StartedOn).Select(x => x.Version.Version).ToList();
+            var migrationsSortedByStartedOn = migrations.OrderBy(x => x.StartedOn).ThenBy(x => x.CompletedOn).Select(x => x.Version.Version).ToList();
             Assert.True(migrationsSortedByStartedOn.IsMonotonicallyIncreasing());
         }
 
@@ -255,7 +270,7 @@ namespace MongoMigrations.Tests
                 Assert.NotNull(migration.CompletedOn);
             }
 
-            var migrationsSortedByStartedOn = migrations.OrderBy(x => x.StartedOn).Select(x => x.Version.Version).ToList();
+            var migrationsSortedByStartedOn = migrations.OrderBy(x => x.StartedOn).ThenBy(x => x.CompletedOn).Select(x => x.Version.Version).ToList();
             Assert.True(migrationsSortedByStartedOn.IsMonotonicallyIncreasing());
         }
     }
