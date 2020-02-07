@@ -145,6 +145,7 @@ namespace MongoMigrations.Tests
 
             var concurrentMigrationExceptionsThrown = new ConcurrentQueue<ConcurrentMigrationException>();
             long migrationCompleted = 0;
+            long migrationAttempts = 0;
 
             void TryMigrate(string serverName)
             {
@@ -152,6 +153,7 @@ namespace MongoMigrations.Tests
                 {
                     try
                     {
+                        Interlocked.Increment(ref migrationAttempts);
                         fixture.MigrationRunner.UpdateToLatest(serverName);
                         Interlocked.Exchange(ref migrationCompleted, 1);
                     }
@@ -173,6 +175,7 @@ namespace MongoMigrations.Tests
             }
 
             Assert.True(fixture.MigrationRunner.IsDatabaseUpToDate());
+            Assert.True(Interlocked.Read(ref migrationAttempts) >= mocks.Count);
 
             var migrations = fixture.MigrationRunner.DatabaseStatus.GetMigrations();
             Assert.Equal(mocks.Count, migrations.Count);
@@ -180,6 +183,71 @@ namespace MongoMigrations.Tests
 
             var serverNames = migrations.Select(x => x.ServerName).Distinct().ToList();
             Assert.Equal(4, serverNames.Count);
+            Assert.StartsWith("thread", serverNames[0]);
+
+            foreach (var migration in migrations)
+            {
+                Assert.NotNull(migration.CompletedOn);
+            }
+
+            var migrationsSortedByStartedOn = migrations.OrderBy(x => x.StartedOn).Select(x => x.Version.Version).ToList();
+            Assert.True(migrationsSortedByStartedOn.IsMonotonicallyIncreasing());
+        }
+
+        [Fact]
+        public void TestUpdateLatest_Is_Thread_Safe_Long_Running()
+        {
+            var mocks = Enumerable.Range(0, 2).Select(version =>
+            {
+                var mock = new Mock<IMigration>();
+                mock.SetupGet(x => x.Version).Returns(new MigrationVersion(version));
+                mock.SetupGet(x => x.Database).Returns(_databaseFixture.Database);
+                mock.Setup(x => x.Update()).Callback(() => Thread.Sleep(5000));
+                return mock;
+            }).ToList();
+
+            var migrationLocator = new MigrationLocator(typeof(MigrationLocatorTests).Assembly, mocks.Select(x => x.Object).ToList());
+
+            using var fixture = new MigrationRunnerFixture(_databaseFixture, migrationLocator);
+
+            var concurrentMigrationExceptionsThrown = new ConcurrentQueue<ConcurrentMigrationException>();
+            long migrationCompleted = 0;
+            long migrationAttempts = 0;
+
+            void TryMigrate(string serverName)
+            {
+                while (Interlocked.Read(ref migrationCompleted) == 0)
+                {
+                    try
+                    {
+                        Interlocked.Increment(ref migrationAttempts);
+                        fixture.MigrationRunner.UpdateToLatest(serverName);
+                        Interlocked.Exchange(ref migrationCompleted, 1);
+                    }
+                    catch (ConcurrentMigrationException e)
+                    {
+                        concurrentMigrationExceptionsThrown.Enqueue(e);
+                    }
+                }
+            }
+
+            new Thread(() => TryMigrate("thread1")) { IsBackground = true }.Start();
+            new Thread(() => TryMigrate("thread2")) { IsBackground = true }.Start();
+
+            while (Interlocked.Read(ref migrationCompleted) != 1)
+            {
+                Thread.Sleep(50);
+            }
+
+            Assert.True(fixture.MigrationRunner.IsDatabaseUpToDate());
+            Assert.True(Interlocked.Read(ref migrationAttempts) >= mocks.Count);
+
+            var migrations = fixture.MigrationRunner.DatabaseStatus.GetMigrations();
+            Assert.Equal(mocks.Count, migrations.Count);
+            Assert.NotEmpty(concurrentMigrationExceptionsThrown);
+
+            var serverNames = migrations.Select(x => x.ServerName).Distinct().ToList();
+            Assert.True(serverNames.Count >= 1);
             Assert.StartsWith("thread", serverNames[0]);
 
             foreach (var migration in migrations)
