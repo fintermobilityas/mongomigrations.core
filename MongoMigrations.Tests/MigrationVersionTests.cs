@@ -16,6 +16,7 @@ namespace MongoMigrations.Tests
         [Fact]
         public void Test_Operator_Equals()
         {
+            // ReSharper disable once EqualExpressionComparison
             Assert.True(new MigrationVersion(0) == new MigrationVersion(0));
             Assert.False(new MigrationVersion(0) == new MigrationVersion(1));
         }
@@ -24,6 +25,7 @@ namespace MongoMigrations.Tests
         public void Test_Operator_NotEquals()
         {
             Assert.True(new MigrationVersion(0) != new MigrationVersion(1));
+            // ReSharper disable once EqualExpressionComparison
             Assert.False(new MigrationVersion(0) != new MigrationVersion(0));
         }
 
@@ -45,6 +47,7 @@ namespace MongoMigrations.Tests
         public void Test_Operator_LessThanEqualto()
         {
             Assert.True(new MigrationVersion(0) <= new MigrationVersion(1));
+            // ReSharper disable once EqualExpressionComparison
             Assert.True(new MigrationVersion(1) <= new MigrationVersion(1));
             Assert.False(new MigrationVersion(1) <= new MigrationVersion(0));
         }
@@ -53,6 +56,7 @@ namespace MongoMigrations.Tests
         public void Test_Operator_GreaterThanOrEqualTo()
         {
             Assert.True(new MigrationVersion(1) >= new MigrationVersion(0));
+            // ReSharper disable once EqualExpressionComparison
             Assert.True(new MigrationVersion(1) >= new MigrationVersion(1));
             Assert.False(new MigrationVersion(0) >= new MigrationVersion(1));
         }

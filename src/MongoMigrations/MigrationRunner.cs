@@ -10,7 +10,7 @@ namespace MongoMigrations
     public interface IMigrationRunner
     {
         IMongoDatabase Database { get; }
-        IMigrationLocator MigrationLocator { get; }
+        [UsedImplicitly] IMigrationLocator MigrationLocator { get; }
         IDatabaseMigrationStatus DatabaseStatus { get; }
         void UpdateToLatest(string serverName = null);
         bool IsDatabaseUpToDate();
