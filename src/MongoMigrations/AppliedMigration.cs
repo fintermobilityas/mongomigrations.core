@@ -26,8 +26,10 @@ namespace MongoMigrations
         [UsedImplicitly]
         public DateTime StartedOn { get; set; }
         public DateTime? CompletedOn { get; set; }
+        public DateTime? FailedOn { get; set; }
         public string ServerName { get; set; }
-
+        public string ExceptionMessage { get; set; }
+        
         public override string ToString()
         {
             return $"{Version} started on {StartedOn} completed on {CompletedOn}";

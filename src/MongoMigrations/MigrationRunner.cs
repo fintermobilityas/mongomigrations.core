@@ -120,6 +120,8 @@ namespace MongoMigrations
                         Database.DatabaseNamespace.DatabaseName
                     };
 
+                    DatabaseStatus.FailMigration(appliedMigration, exception);
+
                     throw new MigrationException(message.ToString(), exception);
                 }
 

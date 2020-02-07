@@ -117,6 +117,35 @@ namespace MongoMigrations.Tests
         }
 
         [Fact]
+        public void TestUpdateToLatest_Exception_Is_Thrown()
+        {
+            var migration1Mock = new Mock<IMigration>();
+            migration1Mock.SetupGet(x => x.Version).Returns(new MigrationVersion(1));
+            migration1Mock.SetupGet(x => x.Database).Returns(_databaseFixture.Database);
+            migration1Mock.Setup(x => x.Update()).Throws(new Exception("YOLO"));
+
+            var migrationLocator = new MigrationLocator(typeof(MigrationLocatorTests).Assembly, new List<IMigration>
+            {
+                migration1Mock.Object
+            });
+
+            using var fixture = new MigrationRunnerFixture(_databaseFixture, migrationLocator);
+
+            var ex = Assert.Throws<MigrationException>(() => fixture.MigrationRunner.UpdateToLatest());
+            Assert.StartsWith("{ Message = Migration failed to be applied: YOLO", ex.Message);
+
+            Assert.False(fixture.MigrationRunner.IsDatabaseUpToDate());
+
+            var migrations = fixture.MigrationRunner.DatabaseStatus.GetMigrations();
+            Assert.Single(migrations);
+
+            Assert.Equal(1, migrations[0].Version.Version);
+            Assert.Null(migrations[0].CompletedOn);
+            Assert.Equal("YOLO", migrations[0].ExceptionMessage);
+            Assert.NotNull(migrations[0].FailedOn);
+        }
+
+        [Fact]
         public void TestUpdateToLatest_No_Prior_Migrations()
         {
             var migration1Mock = new Mock<IMigration>();

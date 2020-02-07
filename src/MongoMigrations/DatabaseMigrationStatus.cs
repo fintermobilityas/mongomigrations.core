@@ -17,6 +17,7 @@ namespace MongoMigrations
         bool IsMigrationInProgress();
         AppliedMigration GetLastAppliedMigration();
         AppliedMigration StartMigration([NotNull] IMigration migration, string serverName);
+        void FailMigration(AppliedMigration appliedMigration, Exception exception);
         void CompleteMigration([NotNull] AppliedMigration appliedMigration);
     }
 
@@ -73,6 +74,16 @@ namespace MongoMigrations
             };
             Collection.InsertOne(appliedMigration);
             return appliedMigration;
+        }
+
+        public void FailMigration(AppliedMigration appliedMigration, [NotNull] Exception exception)
+        {
+            if (appliedMigration == null) throw new ArgumentNullException(nameof(appliedMigration));
+            if (exception == null) throw new ArgumentNullException(nameof(exception));
+            appliedMigration.ExceptionMessage = exception.Message;
+            appliedMigration.FailedOn = DateTime.Now;
+            Collection.UpdateOne(Builders<AppliedMigration>.Filter.Eq(x => x.Version, appliedMigration.Version),
+                Builders<AppliedMigration>.Update.Set(x => x.ExceptionMessage, appliedMigration.ExceptionMessage).Set(x => x.FailedOn, appliedMigration.FailedOn));
         }
 
         public void CompleteMigration(AppliedMigration appliedMigration)
