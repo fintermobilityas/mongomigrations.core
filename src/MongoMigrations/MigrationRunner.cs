@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -14,6 +16,7 @@ namespace MongoMigrations
         IDatabaseMigrationStatus DatabaseStatus { get; }
         void UpdateToLatest(string serverName = null);
         bool IsDatabaseUpToDate();
+        Task<bool> IsDatabaseUpToDateAsync(CancellationToken cancellationToken = default);
     }
 
     public sealed class MigrationRunner : IMigrationRunner
@@ -50,6 +53,19 @@ namespace MongoMigrations
 
             var currentMigrationVersion = MigrationLocator.GetLatestVersion();
             var lastMigration = DatabaseStatus.GetLastAppliedMigration();
+            return lastMigration?.CompletedOn != null && lastMigration.Version.Equals(currentMigrationVersion);
+        }
+
+        public async Task<bool> IsDatabaseUpToDateAsync(CancellationToken cancellationToken = default)
+        {
+            if (await DatabaseStatus.IsMigrationInProgressAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return false;
+            }
+
+            var currentMigrationVersion = await MigrationLocator.GetLatestVersionAsync(cancellationToken).ConfigureAwait(false);
+            var lastMigration = await DatabaseStatus.GetLastAppliedMigrationAsync(cancellationToken).ConfigureAwait(false);
+
             return lastMigration?.CompletedOn != null && lastMigration.Version.Equals(currentMigrationVersion);
         }
 

@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using MongoDB.Driver;
 using MongoMigrations.Extensions;
 using MongoMigrations.Tests.Fixtures;
@@ -78,6 +79,23 @@ namespace MongoMigrations.Tests
             fixture.Collection.InsertOne(new AppliedMigration(migration2Mock.Object));
 
             Assert.Equal(2, fixture.MigrationRunner.DatabaseStatus.GetLastAppliedMigration().Version.Version);
+        }
+
+        [Fact]
+        public async Task TestGetLastAppliedMigrationAsync()
+        {
+            using var fixture = new MigrationRunnerFixture(_databaseFixture);
+
+            var migration1Mock = new Mock<IMigration>();
+            migration1Mock.SetupGet(x => x.Version).Returns(new MigrationVersion(1));
+
+            var migration2Mock = new Mock<IMigration>();
+            migration2Mock.SetupGet(x => x.Version).Returns(new MigrationVersion(2));
+
+            fixture.Collection.InsertOne(new AppliedMigration(migration1Mock.Object));
+            fixture.Collection.InsertOne(new AppliedMigration(migration2Mock.Object));
+
+            Assert.Equal(2, (await fixture.MigrationRunner.DatabaseStatus.GetLastAppliedMigrationAsync()).Version.Version);
         }
 
         [Fact]

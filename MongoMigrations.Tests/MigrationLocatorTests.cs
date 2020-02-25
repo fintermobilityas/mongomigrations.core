@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace MongoMigrations.Tests
@@ -30,6 +31,16 @@ namespace MongoMigrations.Tests
             AddMigrations();
 
             var latestVersion = _migrationLocator.GetLatestVersion();
+            Assert.Equal(new MigrationVersion(1), latestVersion);
+            Assert.Equal(1, latestVersion.Version);
+        }
+
+        [Fact]
+        public async Task TestGetLatestVersionAsync()
+        {
+            AddMigrations();
+
+            var latestVersion = await _migrationLocator.GetLatestVersionAsync();
             Assert.Equal(new MigrationVersion(1), latestVersion);
             Assert.Equal(1, latestVersion.Version);
         }

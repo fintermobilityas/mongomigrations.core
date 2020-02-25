@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 using MongoDB.Driver;
 
@@ -15,7 +17,9 @@ namespace MongoMigrations
         void AddIndexes();
         List<AppliedMigration> GetMigrations();
         bool IsMigrationInProgress();
+        Task<bool> IsMigrationInProgressAsync(CancellationToken cancellationToken = default);
         AppliedMigration GetLastAppliedMigration();
+        Task<AppliedMigration> GetLastAppliedMigrationAsync(CancellationToken cancellationToken = default);
         AppliedMigration StartMigration([NotNull] IMigration migration, string serverName);
         void FailMigration(AppliedMigration appliedMigration, Exception exception);
         void CompleteMigration([NotNull] AppliedMigration appliedMigration);
@@ -58,11 +62,29 @@ namespace MongoMigrations
                 .FirstOrDefault();
         }
 
+        public Task<AppliedMigration> GetLastAppliedMigrationAsync(CancellationToken cancellationToken = default)
+        {
+            return Collection
+                .Find(FilterDefinition<AppliedMigration>.Empty)
+                .SortByDescending(v => v.Version)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
+
         public bool IsMigrationInProgress()
         {
             return Collection
                 .Find(Builders<AppliedMigration>.Filter.Eq(x => x.CompletedOn, null))
                 .CountDocuments() > 0;
+        }
+
+        public async Task<bool> IsMigrationInProgressAsync(CancellationToken cancellationToken = default)
+        {
+            return await 
+                Collection
+                .Find(Builders<AppliedMigration>.Filter.Eq(x => x.CompletedOn, null))
+                .CountDocumentsAsync(cancellationToken)
+                .ConfigureAwait(false) > 0;
         }
 
         public AppliedMigration StartMigration(IMigration migration, string serverName)
