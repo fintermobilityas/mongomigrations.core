@@ -12,6 +12,15 @@ namespace MongoMigrations.Extensions
     [UsedImplicitly]
     public static class MigrationExtensions
     {
+
+        public static string ToJson<TDocument>([NotNull] this UpdateDefinition<TDocument> updateDefinition)
+        {
+            if (updateDefinition == null) throw new ArgumentNullException(nameof(updateDefinition));
+            var documentSerializer = BsonSerializer.SerializerRegistry.GetSerializer<TDocument>();
+            var renderedFilter = updateDefinition.Render(documentSerializer, BsonSerializer.SerializerRegistry);
+            return renderedFilter.ToString();
+        }
+
         public static BsonDocument ToUpdateDefinitionBsonDocument<TDocument>([NotNull] this UpdateDefinition<TDocument> updateDefinition)
         {
             if (updateDefinition == null) throw new ArgumentNullException(nameof(updateDefinition));
