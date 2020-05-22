@@ -6,6 +6,7 @@ using System.Linq;
 using JetBrains.Annotations;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
+using MongoDB.Driver;
 using MongoMigrations.WriteModels;
 using MongoMigrations.Extensions;
 
@@ -14,6 +15,8 @@ namespace MongoMigrations.Documents
     [DebuggerDisplay("Name: {" + nameof(_name) + "}")]
     public sealed class MigrationForEachDocuments : IEnumerable<IWriteModel>
     {
+        readonly FilterDefinition<BsonDocument> _parentFilterDefinition;
+
         readonly string _name;
         readonly BsonArray _bsonArray;
         readonly Func<MigrationForEachDocument, IWriteModel> _enumeratorFunc;
@@ -22,8 +25,9 @@ namespace MongoMigrations.Documents
         [UsedImplicitly] public List<string> JsonDocuments => BsonDocuments.Select(x => x?.ToJson(new JsonWriterSettings { OutputMode = JsonOutputMode.Strict })).ToList();
         [UsedImplicitly] public List<BsonDocument> BsonDocuments => this.Select(x => x.Model?.ToWriteModelBsonDocument()).ToList();
 
-        public MigrationForEachDocuments([NotNull] string name, [NotNull] BsonArray bsonArray, [NotNull] Func<MigrationForEachDocument, IWriteModel> enumeratorFunc)
+        public MigrationForEachDocuments([NotNull] FilterDefinition<BsonDocument> parentFilterDefinition, [NotNull] string name, [NotNull] BsonArray bsonArray, [NotNull] Func<MigrationForEachDocument, IWriteModel> enumeratorFunc)
         {
+            _parentFilterDefinition = parentFilterDefinition ?? throw new ArgumentNullException(nameof(parentFilterDefinition));
             _name = name;
             _bsonArray = bsonArray;
             _enumeratorFunc = enumeratorFunc;
@@ -47,7 +51,7 @@ namespace MongoMigrations.Documents
             var subDocuments = _bsonArray.Select(x => x.AsBsonDocument).ToList();
             foreach (var document in _bsonArray.Select(x => x.AsBsonDocument))
             {
-                var writeModel = _enumeratorFunc(new MigrationForEachDocument(_name, subDocuments, index++, document));
+                var writeModel = _enumeratorFunc(new MigrationForEachDocument(_parentFilterDefinition, _name, subDocuments, index++, document));
                 switch (writeModel)
                 {
                     case DoNotApplyWriteModel _:

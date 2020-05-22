@@ -43,7 +43,7 @@ namespace MongoMigrations.Documents
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (enumeratorFunc == null) throw new ArgumentNullException(nameof(enumeratorFunc));
 
-            _writeModels.AddRange(new MigrationForEachDocuments(name, this[name].AsBsonArray, enumeratorFunc));
+            _writeModels.AddRange(new MigrationForEachDocuments(ByDocumentIdFilter(), name, this[name].AsBsonArray, enumeratorFunc));
 
             return _writeModels;
         }

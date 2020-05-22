@@ -11,6 +11,8 @@ namespace MongoMigrations.Documents
     [DebuggerDisplay("Name: {Name}. Index: {Index}")]
     public sealed class MigrationForEachDocument
     {
+        readonly FilterDefinition<BsonDocument> _parentFilterDefinition;
+
         [UsedImplicitly] public string Name { get; }
         [UsedImplicitly] public IEnumerable<BsonDocument> BsonDocuments { get; }
         [UsedImplicitly] public int Index { get; }
@@ -27,8 +29,10 @@ namespace MongoMigrations.Documents
         public BsonValue this[string name] => BsonDocument[name];
         [UsedImplicitly] public string Field(string field) => $"{Name}.{Index}.{field}";
 
-        public MigrationForEachDocument([NotNull] string name, IEnumerable<BsonDocument> bsonDocuments, int index, [NotNull] BsonDocument bsonDocument)
+        public MigrationForEachDocument([NotNull] FilterDefinition<BsonDocument> parentFilterDefinition, [NotNull] string name,
+            IEnumerable<BsonDocument> bsonDocuments, int index, [NotNull] BsonDocument bsonDocument)
         {
+            _parentFilterDefinition = parentFilterDefinition ?? throw new ArgumentNullException(nameof(parentFilterDefinition));
             BsonDocuments = bsonDocuments ?? throw new ArgumentNullException(nameof(bsonDocuments));
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Index = index < 0 ? throw new ArgumentOutOfRangeException(nameof(index)) : index;
@@ -52,13 +56,6 @@ namespace MongoMigrations.Documents
         }
 
         [UsedImplicitly]
-        public IWriteModel Delete([NotNull] FilterDefinition<BsonDocument> filterDefinition)
-        {
-            if (filterDefinition == null) throw new ArgumentNullException(nameof(filterDefinition));
-            return new MigrationDeleteDocument(filterDefinition);
-        }
-        
-        [UsedImplicitly]
         public IWriteModel Update([NotNull] UpdateDefinition<BsonDocument> updateDefinition)
         {
             if (updateDefinition == null) throw new ArgumentNullException(nameof(updateDefinition));
@@ -73,9 +70,10 @@ namespace MongoMigrations.Documents
         }
 
         [UsedImplicitly]
-        public IWriteModel Delete()
+        public IWriteModel Delete([NotNull] FilterDefinition<BsonDocument> filterDefinition)
         {
-            return Delete(ByDocumentIdFilter());
+            if (filterDefinition == null) throw new ArgumentNullException(nameof(filterDefinition));
+            return new WriteModel(new UpdateOneModel<BsonDocument>(_parentFilterDefinition, Builders<BsonDocument>.Update.PullFilter(Name, filterDefinition)));
         }
 
         [UsedImplicitly]
