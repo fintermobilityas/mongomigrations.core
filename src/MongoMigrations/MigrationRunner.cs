@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using MongoDB.Driver;
 
 namespace MongoMigrations
 {
+    [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public interface IMigrationRunner
     {
         IMongoDatabase Database { get; }

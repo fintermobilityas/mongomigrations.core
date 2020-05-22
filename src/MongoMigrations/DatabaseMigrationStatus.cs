@@ -29,6 +29,7 @@ namespace MongoMigrations
     {
         readonly IMigrationRunner _runner;
         IMongoCollection<AppliedMigration> _collection;
+        readonly IOrderedFindFluent<AppliedMigration, AppliedMigration> _getLastApplicationMigrationBuilder;
 
         public string CollectionName { get; }
         public IMongoCollection<AppliedMigration> Collection => _collection ??= _runner.Database.GetCollection<AppliedMigration>(CollectionName);
@@ -39,6 +40,9 @@ namespace MongoMigrations
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(collectionName));
             CollectionName = collectionName;
             _runner = runner ?? throw new ArgumentNullException(nameof(runner));
+            _getLastApplicationMigrationBuilder = Collection
+                .Find(Builders<AppliedMigration>.Filter.Ne(x => x.CompletedOn, null))
+                .SortByDescending(v => v.Version);
         }
 
         public void AddIndexes()
@@ -56,20 +60,13 @@ namespace MongoMigrations
 
         public AppliedMigration GetLastAppliedMigration()
         {
-            return Collection
-                .Find(FilterDefinition<AppliedMigration>.Empty)
-                .SortByDescending(v => v.Version)
-                .FirstOrDefault();
+            return _getLastApplicationMigrationBuilder.FirstOrDefault();
         }
 
         public Task<AppliedMigration> GetLastAppliedMigrationAsync(CancellationToken cancellationToken = default)
         {
-            return Collection
-                .Find(FilterDefinition<AppliedMigration>.Empty)
-                .SortByDescending(v => v.Version)
-                .FirstOrDefaultAsync(cancellationToken);
+            return _getLastApplicationMigrationBuilder.FirstOrDefaultAsync(cancellationToken);
         }
-
 
         public bool IsMigrationInProgress()
         {
