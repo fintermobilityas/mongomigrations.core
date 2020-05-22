@@ -34,12 +34,10 @@ namespace MongoMigrations.Documents
         {
             if (_writeModels.Any())
             {
-                using (var enumerator = _writeModels.GetEnumerator())
+                using var enumerator = _writeModels.GetEnumerator();
+                while (enumerator.MoveNext())
                 {
-                    while (enumerator.MoveNext())
-                    {
-                        yield return enumerator.Current;
-                    }
+                    yield return enumerator.Current;
                 }
 
                 yield break;
