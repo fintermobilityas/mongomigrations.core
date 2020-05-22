@@ -3,7 +3,7 @@ using System.Globalization;
 
 namespace MongoMigrations
 {
-    public struct MigrationVersion : IComparable<MigrationVersion>
+    public readonly struct MigrationVersion : IComparable<MigrationVersion>
     {
         public int Version { get; }
 
