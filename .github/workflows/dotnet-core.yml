@@ -58,7 +58,7 @@ jobs:
       - name: Build & Run Tests
         run: |
           pwsh -command ".\${{ env.GITHUB_WORKSPACE }}\build.ps1" -Version ${{ env.BUILD_VERSION }} -RunTests -Nupkg
-          echo "::set-env name=BUILD_SUCCESS::1"
+          echo "${{ env.BUILD_VERSION }}" | Out-File ${{ env.GITHUB_WORKSPACE }}/nupkgs/nupkg_version.txt
 
       - if: always()
         name: Upload dotnet test results
@@ -91,8 +91,10 @@ jobs:
         shell: pwsh
         run: | 
           $nupkg_fullpath = Get-ChildItem ./nupkgs | ForEach-Object { $_.FullName } | Select-Object -First 1
+          $nupkg_version = Get-Content ./nupkgs/nupkg_version.txt
           dotnet nuget add source https://www.myget.org/F/youpark/api/v3/index.json --name finter-myget --username ${{ secrets.FINTER_MYGET_USERNAME }} --password ${{ secrets.FINTER_MYGET_PASSWORD }}
           dotnet nuget push $nupkg_fullpath --source https://www.myget.org/F/youpark/api/v2/package --api-key ${{ secrets.FINTER_MYGET_API_KEY }}
+          echo "::set-env name=NUPKG_VERSION::$nupkg_version"
 
       - name: Create github release tag
         if: success() && github.ref == 'refs/heads/master'
@@ -100,7 +102,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ env.BUILD_VERSION }}
-          release_name: Release v${{ env.BUILD_VERSION }}
+          tag_name: v${{ env.NUPKG_VERSION }}
+          release_name: Release v${{ env.NUPKG_VERSION }}
           draft: true
           prerelease: false
