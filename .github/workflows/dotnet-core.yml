@@ -68,6 +68,7 @@ jobs:
           echo "::set-env name=BUILD_VERSION::$BUILD_VERSION"
                 
       - name: Build & Run Tests
+        shell: pwsh
         timeout-minutes: 10
         run: |
           pwsh -c ".\${{ env.GITHUB_WORKSPACE }}\build.ps1" -Version ${{ env.BUILD_VERSION }} -RunTests -Nupkg
