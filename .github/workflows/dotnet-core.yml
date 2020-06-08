@@ -24,9 +24,17 @@ jobs:
         env:
           MONGODB_SERVER_FILENAME: mongodb-win32-x86_64-2012plus-${{ env.MONGODB_VERSION }}-signed.msi
         run: |
-          mkdir -p software
-          Start-BitsTransfer https://fastdl.mongodb.org/win32/${{ env.MONGODB_SERVER_FILENAME }} ./software/${{ env.MONGODB_SERVER_FILENAME }}
-          Start-Process ./software/${{ env.MONGODB_SERVER_FILENAME }} -Wait -ArgumentList "ADDLOCAL="ServerService" SHOULD_INSTALL_COMPASS="0" MONGO_DATA_PATH="${{ github.workspace }}\software\mongodb\data" MONGO_LOG_PATH="${{ github.workspace }}\software\mongodb\logs" INSTALLLOCATION="${{ github.workspace }}\software\mongodb\server" /qn /norestart"
+          mkdir -p software/mongodb
+          Start-BitsTransfer https://fastdl.mongodb.org/win32/${{ env.MONGODB_SERVER_FILENAME }} ./software/mongodb/${{ env.MONGODB_SERVER_FILENAME }}
+          $ArgumentList = @(
+            'ADDLOCAL="ServerService"'
+            'SHOULD_INSTALL_COMPASS="0"'
+            'MONGO_DATA_PATH="${{ github.workspace }}\software\mongodb\data"'
+            'MONGO_LOG_PATH="${{ github.workspace }}\software\mongodb\logs"'
+            'INSTALLLOCATION="${{ github.workspace }}\software\mongodb\server"'
+            '/qn /norestart'
+          ) -Join " ";
+          Start-Process ./software/${{ env.MONGODB_SERVER_FILENAME }} -Wait -ArgumentList "$ArgumentList"
           
       - if: matrix.os == 'ubuntu-latest'
         name: Setup mongodb v${{ env.MONGODB_VERSION }}
