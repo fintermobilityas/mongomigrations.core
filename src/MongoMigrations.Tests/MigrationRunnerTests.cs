@@ -195,81 +195,6 @@ namespace MongoMigrations.Tests
         [Fact]
         public void TestUpdateLatest_Is_Thread_Safe()
         {
-            var random = new Random();
-
-            var mocks = Enumerable.Range(0, 1000).Select(version =>
-            {
-                var mock = new Mock<IMigration>();
-                mock.SetupGet(x => x.Version).Returns(new MigrationVersion(version));
-                mock.SetupGet(x => x.Database).Returns(_databaseFixture.Database);
-                mock.Setup(x => x.Update()).Callback(() => Thread.Sleep(random.Next(1, 5)));
-                return mock;
-            }).ToList();
-
-            var migrationLocator = new MigrationLocator(typeof(MigrationLocatorTests).Assembly, mocks.Select(x => x.Object).ToList());
-
-            using var fixture = new MigrationRunnerFixture(_databaseFixture, migrationLocator);
-
-            var concurrentMigrationExceptionsThrown = new ConcurrentQueue<ConcurrentMigrationException>();
-            long migrationCompleted = 0;
-            long migrationAttempts = 0;
-
-            void TryMigrate(string serverName)
-            {
-                while (Interlocked.Read(ref migrationCompleted) == 0)
-                {
-                    try
-                    {
-                        Interlocked.Increment(ref migrationAttempts);
-                        fixture.MigrationRunner.UpdateToLatest(serverName);
-                        Interlocked.Exchange(ref migrationCompleted, 1);
-                    }
-                    catch (ConcurrentMigrationException e)
-                    {
-                        concurrentMigrationExceptionsThrown.Enqueue(e);
-                    }
-                }
-            }
-
-            const int serversCount = 4;
-
-            for (var i = 0; i < serversCount; i++)
-            {
-                ThreadPool.QueueUserWorkItem(obj =>
-                {
-                    var threadName = (int) obj;
-                    TryMigrate($"thread{threadName}");
-                }, i);
-            }
-
-            while (Interlocked.Read(ref migrationCompleted) != 1)
-            {
-                Thread.Sleep(50);
-            }
-
-            Assert.True(fixture.MigrationRunner.IsDatabaseUpToDate());
-            Assert.True(Interlocked.Read(ref migrationAttempts) >= mocks.Count);
-
-            var appliedMigrations = fixture.MigrationRunner.DatabaseStatus.GetMigrations();
-            Assert.Equal(mocks.Count, appliedMigrations.Count);
-            Assert.True(concurrentMigrationExceptionsThrown.Count >= serversCount);
-
-            var appliedMigrationServerNames = appliedMigrations.Select(x => x.ServerName).Distinct().ToList();
-            Assert.Single(appliedMigrationServerNames);
-            Assert.StartsWith("thread", appliedMigrationServerNames[0]);
-
-            foreach (var migration in appliedMigrations)
-            {
-                Assert.NotNull(migration.CompletedOn);
-            }
-
-            var appliedMigrationsVersions = appliedMigrations.Select(x => x.Version.Version).ToList();
-            Assert.True(appliedMigrationsVersions.IsMonotonicallyIncreasing());
-        }
-
-        [Fact]
-        public void TestUpdateLatest_Is_Thread_Safe_Long_Running()
-        {
             var mocks = Enumerable.Range(0, 2).Select(version =>
             {
                 var mock = new Mock<IMigration>();
@@ -287,15 +212,24 @@ namespace MongoMigrations.Tests
             long migrationCompleted = 0;
             long migrationAttempts = 0;
 
+            var cts = new CancellationTokenSource();
+            cts.CancelAfter(TimeSpan.FromSeconds(30));
+
             void TryMigrate(string serverName)
             {
-                while (Interlocked.Read(ref migrationCompleted) == 0)
+                while (!cts.Token.IsCancellationRequested)
                 {
+                    cts.Token.ThrowIfCancellationRequested();
+
                     try
                     {
                         Interlocked.Increment(ref migrationAttempts);
                         fixture.MigrationRunner.UpdateToLatest(serverName);
-                        Interlocked.Exchange(ref migrationCompleted, 1);
+                        var migrationsCompleted = Interlocked.Exchange(ref migrationCompleted, 1);
+                        if (migrationsCompleted == mocks.Count)
+                        {
+                            break;
+                        }
                     }
                     catch (ConcurrentMigrationException e)
                     {
@@ -306,6 +240,8 @@ namespace MongoMigrations.Tests
 
             new Thread(() => TryMigrate("thread1")) { IsBackground = true }.Start();
             new Thread(() => TryMigrate("thread2")) { IsBackground = true }.Start();
+            new Thread(() => TryMigrate("thread3")) { IsBackground = true }.Start();
+            new Thread(() => TryMigrate("thread4")) { IsBackground = true }.Start();
 
             while (Interlocked.Read(ref migrationCompleted) != 1)
             {
@@ -315,21 +251,21 @@ namespace MongoMigrations.Tests
             Assert.True(fixture.MigrationRunner.IsDatabaseUpToDate());
             Assert.True(Interlocked.Read(ref migrationAttempts) >= mocks.Count);
 
-            var migrations = fixture.MigrationRunner.DatabaseStatus.GetMigrations();
-            Assert.Equal(mocks.Count, migrations.Count);
+            var appliedMigrations = fixture.MigrationRunner.DatabaseStatus.GetMigrations();
+            Assert.Equal(mocks.Count, appliedMigrations.Count);
             Assert.NotEmpty(concurrentMigrationExceptionsThrown);
 
-            var serverNames = migrations.Select(x => x.ServerName).Distinct().ToList();
-            Assert.True(serverNames.Count >= 1);
+            var serverNames = appliedMigrations.Select(x => x.ServerName).Distinct().ToList();
+            Assert.Single(serverNames);
             Assert.StartsWith("thread", serverNames[0]);
 
-            foreach (var migration in migrations)
+            foreach (var migration in appliedMigrations)
             {
                 Assert.NotNull(migration.CompletedOn);
             }
 
-            var migrationsSortedByStartedOn = migrations.OrderBy(x => x.StartedOn).ThenBy(x => x.CompletedOn).Select(x => x.Version.Version).ToList();
-            Assert.True(migrationsSortedByStartedOn.IsMonotonicallyIncreasing());
+            var appliedMigrationsVersions = appliedMigrations.Select(x => x.Version.Version).ToList();
+            Assert.True(appliedMigrationsVersions.IsMonotonicallyIncreasing());
         }
     }
 }
