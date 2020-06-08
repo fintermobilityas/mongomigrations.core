@@ -18,21 +18,33 @@ jobs:
         os: [windows-latest, ubuntu-latest]
     steps:
       
+      - name: Checkout
+        uses: actions/checkout@v2
+      
       - if: matrix.os == 'windows-latest'
         name: Setup mongodb v${{ env.MONGODB_VERSION }}
-        uses: crazy-max/ghaction-chocolatey@v1.2.2
-        with: 
-          args: install mongodb --version ${{ env.MONGODB_VERSION }} --install-arguments "'ADDLOCAL="ServerService" SHOULD_INSTALL_COMPASS="0" MONGO_DATA_PATH="${{ github.workspace }}\software\mongodb\data" MONGO_LOG_PATH="${{ github.workspace }}\software\mongodb\logs" INSTALLLOCATION="${{ github.workspace }}\software\mongodb\server" /qn /norestart'" --override-arguments
-           
+        shell: pwsh
+        env:
+          MONGODB_SERVER_FILENAME: mongodb-win32-x86_64-2012plus-${{ env.MONGODB_VERSION }}-signed.msi
+        run: |
+          mkdir -p software/mongodb
+          Start-BitsTransfer https://fastdl.mongodb.org/win32/${{ env.MONGODB_SERVER_FILENAME }} ./software/mongodb/${{ env.MONGODB_SERVER_FILENAME }}
+          $ArgumentList = @(
+            'ADDLOCAL="ServerService"'
+            'SHOULD_INSTALL_COMPASS="0"'
+            'MONGO_DATA_PATH="${{ github.workspace }}\software\mongodb\data"'
+            'MONGO_LOG_PATH="${{ github.workspace }}\software\mongodb\logs"'
+            'INSTALLLOCATION="${{ github.workspace }}\software\mongodb\server"'
+            '/qn /norestart'
+          ) -Join " ";
+          Start-Process ./software/mongodb/${{ env.MONGODB_SERVER_FILENAME }} -Wait -ArgumentList "$ArgumentList"
+          
       - if: matrix.os == 'ubuntu-latest'
         name: Setup mongodb v${{ env.MONGODB_VERSION }}
         uses: supercharge/mongodb-github-action@1.2.0
         with:
           mongodb-version: ${{ env.MONGODB_VERSION }}
-                              
-      - name: Checkout
-        uses: actions/checkout@v2
-            
+                                    
       - name: Fetch all history for all tags and branches (gitversion requirement)
         run: git fetch --prune --unshallow
                       
@@ -56,9 +68,11 @@ jobs:
           echo "::set-env name=BUILD_VERSION::$BUILD_VERSION"
                 
       - name: Build & Run Tests
+        timeout-minutes: 10
         run: |
           pwsh -command ".\${{ env.GITHUB_WORKSPACE }}\build.ps1" -Version ${{ env.BUILD_VERSION }} -RunTests -Nupkg
-          echo "${{ env.BUILD_VERSION }}" | Out-File ${{ env.GITHUB_WORKSPACE }}/nupkgs/nupkg_version.txt
+          echo "${{ env.BUILD_VERSION }}" | Out-File ./nupkgs/nupkg_version.txt
+          echo "::set-env name=BUILD_SUCCESS::1"
 
       - if: always()
         name: Upload dotnet test results
