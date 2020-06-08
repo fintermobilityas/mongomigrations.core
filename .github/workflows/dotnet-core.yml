@@ -34,7 +34,7 @@ jobs:
             'INSTALLLOCATION="${{ github.workspace }}\software\mongodb\server"'
             '/qn /norestart'
           ) -Join " ";
-          Start-Process ./software/${{ env.MONGODB_SERVER_FILENAME }} -Wait -ArgumentList "$ArgumentList"
+          Start-Process ./software/mongodb/${{ env.MONGODB_SERVER_FILENAME }} -Wait -ArgumentList "$ArgumentList"
           
       - if: matrix.os == 'ubuntu-latest'
         name: Setup mongodb v${{ env.MONGODB_VERSION }}
