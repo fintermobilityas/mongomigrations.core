@@ -97,12 +97,9 @@ jobs:
       - name: Push nuget packages MyGet
         shell: pwsh
         run: | 
-          $nupkg_fullpath = Get-ChildItem ".\${{ env.GITHUB_WORKSPACE }}\nupkgs" | ForEach-Object { $_.FullName } | Select-Object -First 1
+          $nupkg_fullpath = Get-ChildItem ".\${{ env.GITHUB_WORKSPACE }}\nupkgs" -Filter *.nupkg | ForEach-Object { $_.FullName } | Select-Object -First 1
           $nupkg_version = Get-Content ".\${{ env.GITHUB_WORKSPACE }}\nupkgs\nupkg_version.txt"
-          
-          echo "Nupkg full path: $nupkg_fullpath"
-          echo "Nupkg version: $nupkg_version"
-          
+                  
           dotnet nuget add source https://www.myget.org/F/youpark/api/v3/index.json --name finter-myget --username ${{ secrets.FINTER_MYGET_USERNAME }} --password ${{ secrets.FINTER_MYGET_PASSWORD }}
           dotnet nuget push $nupkg_fullpath --source https://www.myget.org/F/youpark/api/v2/package --api-key ${{ secrets.FINTER_MYGET_API_KEY }}
           echo "::set-env name=NUPKG_VERSION::$nupkg_version"
