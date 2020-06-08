@@ -27,7 +27,7 @@ jobs:
         env:
           MONGODB_SERVER_FILENAME: mongodb-win32-x86_64-2012plus-${{ env.MONGODB_VERSION }}-signed.msi
         run: |
-          mkdir -p software/mongodb
+          mkdir -p software/mongodb | Out-Null
           Start-BitsTransfer https://fastdl.mongodb.org/win32/${{ env.MONGODB_SERVER_FILENAME }} ./software/mongodb/${{ env.MONGODB_SERVER_FILENAME }}
           $ArgumentList = @(
             'ADDLOCAL="ServerService"'
