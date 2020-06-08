@@ -50,7 +50,7 @@ if($RunTests) {
             "test" 
             "$TestProject"
             "--test-adapter-path:."
-            "--logger:nunit"
+            "--logger:xunit"
             "--verbosity normal"
             "--results-directory $TestResultOutputDirectory"
         )
