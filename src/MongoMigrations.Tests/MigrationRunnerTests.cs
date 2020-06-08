@@ -75,10 +75,12 @@ namespace MongoMigrations.Tests
             var migration2Mock = new Mock<IMigration>();
             migration2Mock.SetupGet(x => x.Version).Returns(new MigrationVersion(2));
 
-            fixture.Collection.InsertOne(new AppliedMigration(migration1Mock.Object));
-            fixture.Collection.InsertOne(new AppliedMigration(migration2Mock.Object));
+            fixture.Collection.InsertOne(new AppliedMigration(migration1Mock.Object) { CompletedOn = DateTime.MinValue });
+            fixture.Collection.InsertOne(new AppliedMigration(migration2Mock.Object) { CompletedOn = DateTime.MinValue.AddSeconds(1) });
 
-            Assert.Equal(2, fixture.MigrationRunner.DatabaseStatus.GetLastAppliedMigration().Version.Version);
+            var lastAppliedMigration = fixture.MigrationRunner.DatabaseStatus.GetLastAppliedMigration();
+            Assert.NotNull(lastAppliedMigration);
+            Assert.Equal(2, lastAppliedMigration.Version.Version);
         }
 
         [Fact]
@@ -92,10 +94,13 @@ namespace MongoMigrations.Tests
             var migration2Mock = new Mock<IMigration>();
             migration2Mock.SetupGet(x => x.Version).Returns(new MigrationVersion(2));
 
-            fixture.Collection.InsertOne(new AppliedMigration(migration1Mock.Object));
-            fixture.Collection.InsertOne(new AppliedMigration(migration2Mock.Object));
+            await fixture.Collection.InsertOneAsync(new AppliedMigration(migration1Mock.Object) { CompletedOn = DateTime.MinValue });
+            await fixture.Collection.InsertOneAsync(new AppliedMigration(migration2Mock.Object) { CompletedOn = DateTime.MinValue });
 
-            Assert.Equal(2, (await fixture.MigrationRunner.DatabaseStatus.GetLastAppliedMigrationAsync()).Version.Version);
+            var lastAppliedMigration = await fixture.MigrationRunner.DatabaseStatus.GetLastAppliedMigrationAsync();
+            Assert.NotNull(lastAppliedMigration);
+
+            Assert.Equal(2, lastAppliedMigration.Version.Version);
         }
 
         [Fact]
@@ -226,10 +231,16 @@ namespace MongoMigrations.Tests
                 }
             }
 
-            new Thread(() => TryMigrate("thread1")) { IsBackground = true }.Start();
-            new Thread(() => TryMigrate("thread2")) { IsBackground = true }.Start();
-            new Thread(() => TryMigrate("thread3")) { IsBackground = true }.Start();
-            new Thread(() => TryMigrate("thread4")) { IsBackground = true }.Start();
+            const int serversCount = 4;
+
+            for (var i = 0; i < serversCount; i++)
+            {
+                ThreadPool.QueueUserWorkItem(obj =>
+                {
+                    var threadName = (int) obj;
+                    TryMigrate($"thread{threadName}");
+                }, i);
+            }
 
             while (Interlocked.Read(ref migrationCompleted) != 1)
             {
@@ -239,21 +250,21 @@ namespace MongoMigrations.Tests
             Assert.True(fixture.MigrationRunner.IsDatabaseUpToDate());
             Assert.True(Interlocked.Read(ref migrationAttempts) >= mocks.Count);
 
-            var migrations = fixture.MigrationRunner.DatabaseStatus.GetMigrations();
-            Assert.Equal(mocks.Count, migrations.Count);
-            Assert.NotEmpty(concurrentMigrationExceptionsThrown);
+            var appliedMigrations = fixture.MigrationRunner.DatabaseStatus.GetMigrations();
+            Assert.Equal(mocks.Count, appliedMigrations.Count);
+            Assert.True(concurrentMigrationExceptionsThrown.Count >= serversCount);
 
-            var serverNames = migrations.Select(x => x.ServerName).Distinct().ToList();
-            Assert.Equal(4, serverNames.Count);
-            Assert.StartsWith("thread", serverNames[0]);
+            var appliedMigrationServerNames = appliedMigrations.Select(x => x.ServerName).Distinct().ToList();
+            Assert.Single(appliedMigrationServerNames);
+            Assert.StartsWith("thread", appliedMigrationServerNames[0]);
 
-            foreach (var migration in migrations)
+            foreach (var migration in appliedMigrations)
             {
                 Assert.NotNull(migration.CompletedOn);
             }
 
-            var migrationsSortedByStartedOn = migrations.OrderBy(x => x.StartedOn).ThenBy(x => x.CompletedOn).Select(x => x.Version.Version).ToList();
-            Assert.True(migrationsSortedByStartedOn.IsMonotonicallyIncreasing());
+            var appliedMigrationsVersions = appliedMigrations.Select(x => x.Version.Version).ToList();
+            Assert.True(appliedMigrationsVersions.IsMonotonicallyIncreasing());
         }
 
         [Fact]
