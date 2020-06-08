@@ -21,7 +21,7 @@ namespace MongoMigrations.Tests.Fixtures
 
         public void Dispose()
         {
-            _databaseFixture.MongoClient.DropDatabase(_collectionName);
+            _databaseFixture.Database.DropCollection(_collectionName);
         }
     }
 }

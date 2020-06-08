@@ -5,7 +5,7 @@ namespace MongoMigrations.Tests.Fixtures
 {
     public sealed class DatabaseFixture : IDisposable
     {
-        public string MongoDbConnectionString = "mongodb://localhost:27017/?connect=replicaset";
+        public string MongoDbConnectionString = "mongodb://localhost:27017";
         public IMongoDatabase Database { get; }
         public IMongoClient MongoClient { get; }
 
