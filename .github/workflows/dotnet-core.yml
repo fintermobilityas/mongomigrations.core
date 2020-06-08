@@ -71,6 +71,7 @@ jobs:
         run: |
           pwsh -command ".\${{ env.GITHUB_WORKSPACE }}\build.ps1" -Version ${{ env.BUILD_VERSION }} -RunTests -Nupkg
           echo "${{ env.BUILD_VERSION }}" | Out-File ./nupkgs/nupkg_version.txt
+          echo "::set-env name=BUILD_SUCCESS::1"
 
       - if: always()
         name: Upload dotnet test results
