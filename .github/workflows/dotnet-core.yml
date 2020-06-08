@@ -73,17 +73,9 @@ jobs:
         run: |
           pwsh -c ".\${{ env.GITHUB_WORKSPACE }}\build.ps1" -Version ${{ env.BUILD_VERSION }} -RunTests -Nupkg
           echo "${{ env.BUILD_VERSION }}" | Out-File ".\${{ env.GITHUB_WORKSPACE }}\nupkgs\nupkg_version.txt"
-          echo "::set-env name=BUILD_SUCCESS::1"
-
-      - if: always()
-        name: Upload dotnet test results
-        uses: MirrorNG/nunit-reporter@v1.0.9
-        with:
-          path: ${{ github.workspace }}/build/${{ env.BUILD_VERSION }}/TestResults/**/TestResults.xml
-          access-token: ${{ secrets.GITHUB_TOKEN }}          
 
       - name: Upload nupkg
-        if: env.BUILD_SUCCESS == '1'
+        if: success()
         uses: actions/upload-artifact@v2
         with:
           name: nupkgs-${{ matrix.os }}
