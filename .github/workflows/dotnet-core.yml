@@ -62,7 +62,7 @@ jobs:
       - name: Build & Run Tests
         run: |
           pwsh -command ".\${{ env.GITHUB_WORKSPACE }}\build.ps1" -Version ${{ env.BUILD_VERSION }} -RunTests -Nupkg
-          echo "${{ env.BUILD_VERSION }}" | Out-File ${{ env.GITHUB_WORKSPACE }}/nupkgs/nupkg_version.txt
+          echo "${{ env.BUILD_VERSION }}" | Out-File ./nupkgs/nupkg_version.txt
 
       - if: always()
         name: Upload dotnet test results
