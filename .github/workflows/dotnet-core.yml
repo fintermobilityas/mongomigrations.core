@@ -1,0 +1,106 @@
+name: dotnetmongomigrations
+
+on: push
+
+env:
+  MONGODB_VERSION: 4.2.7
+  GITVERSION_VERSION: 5.3.4
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1 
+
+jobs:
+
+  build:
+    name: Build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    steps:
+      
+      - if: matrix.os == 'windows-latest'
+        name: Setup mongodb v${{ env.MONGODB_VERSION }}
+        uses: crazy-max/ghaction-chocolatey@v1.2.2
+        with: 
+          args: install mongodb --version ${{ env.MONGODB_VERSION }} --install-arguments "'ADDLOCAL="ServerService" SHOULD_INSTALL_COMPASS="0" MONGO_DATA_PATH="${{ github.workspace }}\software\mongodb\data" MONGO_LOG_PATH="${{ github.workspace }}\software\mongodb\logs" INSTALLLOCATION="${{ github.workspace }}\software\mongodb\server" /qn /norestart'" --override-arguments
+           
+      - if: matrix.os == 'ubuntu-latest'
+        name: Setup mongodb v${{ env.MONGODB_VERSION }}
+        uses: supercharge/mongodb-github-action@1.2.0
+        with:
+          mongodb-version: ${{ env.MONGODB_VERSION }}
+                              
+      - name: Checkout
+        uses: actions/checkout@v2
+            
+      - name: Fetch all history for all tags and branches (gitversion requirement)
+        run: git fetch --prune --unshallow
+                      
+      - name: Read dotnet sdk version from global.json
+        shell: pwsh
+        run: |
+          $DOTNET_VERSION = Get-Content ".\$GITHUB_WORKSPACE\global.json" | ConvertFrom-Json | Select-Object -Expand sdk | Select-Object -Expand version    
+          echo "::set-env name=DOTNET_VERSION::$DOTNET_VERSION"
+          
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v1.4.0
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - id: set-version
+        name: Setup GitVersion and set build version
+        shell: pwsh
+        run: |
+          dotnet tool update GitVersion.Tool --global --version ${{ env.GITVERSION_VERSION }}
+          $BUILD_VERSION = (dotnet gitversion /showVariable NugetVersionv2) | out-string
+          echo "::set-env name=BUILD_VERSION::$BUILD_VERSION"
+                
+      - name: Build & Run Tests
+        run: |
+          pwsh -command ".\${{ env.GITHUB_WORKSPACE }}\build.ps1" -Version ${{ env.BUILD_VERSION }} -RunTests -Nupkg
+          echo "::set-env name=BUILD_SUCCESS::1"
+
+      - if: always()
+        name: Upload dotnet test results
+        uses: MirrorNG/nunit-reporter@v1.0.9
+        with:
+          path: ${{ github.workspace }}/build/${{ env.BUILD_VERSION }}/TestResults/**/TestResults.xml
+          access-token: ${{ secrets.GITHUB_TOKEN }}          
+
+      - name: Upload nupkg
+        if: env.BUILD_SUCCESS == '1'
+        uses: actions/upload-artifact@v2
+        with:
+          name: nupkgs-${{ matrix.os }}
+          path: ${{ github.workspace }}/nupkgs/**/*
+        
+  publish:
+     if: success()
+     runs-on: windows-latest
+     name: Publish nuget package
+     needs: [build]
+     steps:
+          
+      - name: Download nupkgs
+        uses: actions/download-artifact@v2
+        with:
+          name: nupkgs-windows-latest
+          path: ${{ github.workspace }}/nupkgs
+          
+      - name: Push nuget packages MyGet
+        shell: pwsh
+        run: | 
+          $nupkg_fullpath = Get-ChildItem ./nupkgs | ForEach-Object { $_.FullName } | Select-Object -First 1
+          dotnet nuget add source https://www.myget.org/F/youpark/api/v3/index.json --name finter-myget --username ${{ secrets.FINTER_MYGET_USERNAME }} --password ${{ secrets.FINTER_MYGET_PASSWORD }}
+          dotnet nuget push $nupkg_fullpath --source https://www.myget.org/F/youpark/api/v2/package --api-key ${{ secrets.FINTER_MYGET_API_KEY }}
+
+      - name: Create github release tag
+        if: success() && github.ref == 'refs/heads/master'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ env.BUILD_VERSION }}
+          release_name: Release v${{ env.BUILD_VERSION }}
+          draft: true
+          prerelease: false
