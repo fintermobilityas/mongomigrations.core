@@ -5,20 +5,6 @@
     <RootNamespace>MongoMigrations</RootNamespace>
     <AssemblyName>MongoMigrations</AssemblyName>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <Version>94.0.0</Version>
-    <AssemblyVersion>$(Version)</AssemblyVersion>
-    <FileVersion>$(Version)</FileVersion>
-    <LangVersion>8.0</LangVersion>
-    <Authors>Finter Mobility AS</Authors>
-    <Company>Finter Mobility AS</Company>
-    <Copyright>Finter Mobility AS</Copyright>
-    <Description>Mongo migrations for dot net developers</Description>
-    <PackageProjectUrl>https://github.com/fintermobilityas/dotnetmongomigrations</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/fintermobilityas/dotnetmongomigrations</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageOutputPath>$(MSBuildThisFileDirectory)..\..\nupkgs</PackageOutputPath>
-    <Platforms>AnyCPU</Platforms>
-    <GeneratePackageOnBuild Condition="$(Configuration)=='Release'">true</GeneratePackageOnBuild>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="2020.1.0">
