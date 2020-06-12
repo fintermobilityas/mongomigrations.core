@@ -3,6 +3,7 @@ name: dotnetmongomigrations
 on: push
 
 env:
+  GPR_VERSION: 0.1.125
   MONGODB_VERSION: 4.2.7
   GITVERSION_VERSION: 5.3.4
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
@@ -84,11 +85,15 @@ jobs:
         
   publish:
      if: success()
-     runs-on: windows-latest
+     runs-on: ubuntu-latest
      name: Publish nuget package
      needs: [build]
      steps:
-          
+      
+      - name: Setup gpr v${{ env.GPR_VERSION }} 
+        shell: pwsh
+        run: dotnet tool update gpr --global --version ${{ env.GPR_VERSION }}
+        
       - name: Download nupkgs
         uses: actions/download-artifact@v2
         with:
@@ -101,8 +106,7 @@ jobs:
           $nupkg_fullpath = Get-ChildItem ".\${{ env.GITHUB_WORKSPACE }}\nupkgs" -Filter *.nupkg | ForEach-Object { $_.FullName } | Select-Object -First 1
           $nupkg_version = Get-Content ".\${{ env.GITHUB_WORKSPACE }}\nupkgs\nupkg_version.txt"
                   
-          dotnet nuget add source ${{ env.FINTER_NUGET_FEED }} --name fintermobilityas --username fintermobilityas --password ${{ secrets.FINTER_NUGET_GITHUB_PACKAGES_TOKEN }} --store-password-in-clear-text          
-          dotnet nuget push $nupkg_fullpath --source fintermobilityas --api-key ${{ secrets.FINTER_NUGET_GITHUB_PACKAGES_TOKEN }}          
+          gpr push $nupkg_fullpath --api-key ${{ secrets.FINTER_NUGET_GITHUB_PACKAGES_TOKEN }}
           echo "::set-env name=NUPKG_VERSION::$nupkg_version"
 
       - name: Create github release tag
