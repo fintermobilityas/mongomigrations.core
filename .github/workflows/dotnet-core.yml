@@ -21,7 +21,9 @@ jobs:
     steps:
       
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v2.2.0
+        with:
+          fetch-depth: 0
       
       - if: matrix.os == 'windows-latest'
         name: Setup mongodb v${{ env.MONGODB_VERSION }}
@@ -47,9 +49,6 @@ jobs:
         with:
           mongodb-version: ${{ env.MONGODB_VERSION }}
                                     
-      - name: Fetch all history for all tags and branches (gitversion requirement)
-        run: git fetch --prune --unshallow
-
       - name: Setup dotnet using global.json
         uses: actions/setup-dotnet@v1.5.0
 
