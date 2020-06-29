@@ -10,10 +10,11 @@
         <Copyright>Copyright © Finter Mobility As</Copyright>
         <NeutralLanguage>en-US</NeutralLanguage>
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-        <PackageProjectUrl>https://github.com/fintermobilityas/dotnetmongomigrations</PackageProjectUrl>
-        <RepositoryUrl>https://github.com/fintermobilityas/dotnetmongomigrations.git</RepositoryUrl>
+        <PackageProjectUrl>https://github.com/fintermobilityas/mongomigrations.core</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/fintermobilityas/mongomigrations.core.git</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageOutputPath Condition="$(PackageOutputPath) == ''">$(MSBuildThisFileDirectory)\nupkgs</PackageOutputPath>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
 
 </Project>
