@@ -1,4 +1,4 @@
-# Migrations for MongoDB
+# 📖 About mongomigrations.core
 
 ![dependabot](https://api.dependabot.com/badges/status?host=github&repo=fintermobilityas/mongomigrations.core) ![License](https://img.shields.io/github/license/fintermobilityas/mongomigrations.core.svg)
 
@@ -9,7 +9,7 @@
 | Github Actions | windows-latest, ubuntu-latest | Branch: develop ![mongomigrations.core](https://github.com/fintermobilityas/mongomigrations.core/workflows/mongomigrations.core/badge.svg?branch=develop) |
 | Github Actions | windows-latest, ubuntu-latest | Branch: master ![mongomigrations.core](https://github.com/fintermobilityas/mongomigrations.core/workflows/mongomigrations.core/badge.svg?branch=master) |
 
-## Introduction
+## 🚀 Getting Started Guide
 
 Typed migrations for MongoDB. 
 
