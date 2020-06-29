@@ -1,4 +1,4 @@
-name: dotnetmongomigrations
+name: mongomigrations.core
 
 on: push
 
