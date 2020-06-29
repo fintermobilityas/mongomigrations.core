@@ -52,7 +52,7 @@ class Migration1 : Migration
 
 ### Migrate all documents in a collection
 
-```
+```csharp
 class Migration2 : CollectionMigration
 {
 
