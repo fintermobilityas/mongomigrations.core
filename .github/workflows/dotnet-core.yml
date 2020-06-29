@@ -78,11 +78,7 @@ jobs:
      name: Publish nuget package
      needs: [build]
      steps:
-      
-      - name: Setup gpr v${{ env.GPR_VERSION }} 
-        shell: pwsh
-        run: dotnet tool update gpr --global --version ${{ env.GPR_VERSION }}
-        
+
       - name: Download nupkgs
         uses: actions/download-artifact@v2
         with:
