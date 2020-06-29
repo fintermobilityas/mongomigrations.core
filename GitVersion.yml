@@ -1,4 +1,4 @@
-next-version: 98.0.1
+next-version: 1.0.0
 mode: ContinuousDeployment
 continuous-delivery-fallback-tag: ''
 branches:
