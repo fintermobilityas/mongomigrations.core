@@ -3,12 +3,10 @@ name: dotnetmongomigrations
 on: push
 
 env:
-  GPR_VERSION: 0.1.219
-  MONGODB_VERSION: 4.2.7
+  MONGODB_VERSION: 4.2.8
   GITVERSION_VERSION: 5.3.4
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1 
-  FINTER_NUGET_FEED: https://nuget.pkg.github.com/fintermobilityas/index.json
 
 jobs:
 
@@ -97,7 +95,11 @@ jobs:
         run: | 
           $nupkg_version = Get-Content ".\${{ env.GITHUB_WORKSPACE }}\nupkgs\nupkg_version.txt"
           echo "::set-env name=NUPKG_VERSION::$nupkg_version"                  
-          gpr push nupkgs --api-key ${{ secrets.FINTER_NUGET_GITHUB_PACKAGES_TOKEN }}
+          
+          $nupkgs = Get-ChildItem ".\${{ env.GITHUB_WORKSPACE }}\nupkgs" -Filter *.nupkg | Select-Object -ExpandProperty FullName          
+          $nupkgs | ForEach-Object -Parallel {
+            dotnet nuget push $_ --source nuget.org --api-key ${{ secrets.PETERSUNDE_NUGET_ORG_API_KEY }}       
+          }          
 
       - name: Create github release tag
         if: success() && github.ref == 'refs/heads/master'
