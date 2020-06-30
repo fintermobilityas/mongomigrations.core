@@ -1,3 +1,3 @@
 ﻿using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("MongoMigrations.Tests")]
+[assembly: InternalsVisibleTo("MongoMigrations.Core.Tests")]
