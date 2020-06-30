@@ -24,7 +24,7 @@ Resolve-Shell-Dependency dotnet
 Invoke-Command-Colored dotnet @("clean")
 
 Invoke-Command-Colored dotnet @(
-    ("build {0}" -f (Join-Path $WorkingDirectory MongoMigrations.sln))
+    ("build {0}" -f (Join-Path $WorkingDirectory MongoMigrations.Core.sln))
     "/p:Version=$Version",
     "/p:GeneratePackageOnBuild=$Nupkg"
     "--output $BuildOutputDirectory"
