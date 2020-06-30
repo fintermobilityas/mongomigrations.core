@@ -94,7 +94,7 @@ jobs:
           
           $nupkgs = Get-ChildItem ".\${{ env.GITHUB_WORKSPACE }}\nupkgs" -Filter *.nupkg | Select-Object -ExpandProperty FullName          
           $nupkgs | ForEach-Object {
-            dotnet nuget push $_ --source nuget.org --api-key ${{ secrets.PETERSUNDE_NUGET_ORG_API_KEY }}  
+            dotnet nuget push $_ --source nuget.org --api-key ${{ secrets.NUGET_THIS_REPO_API_KEY }}  
             if($LASTEXITCODE -ne 0) {
                Write-Error "Error uploading nupkg: $_. Exit code: $LASTEXITCODE"
             }
