@@ -5,6 +5,7 @@
     <RootNamespace>MongoMigrations.Core</RootNamespace>
     <AssemblyName>MongoMigrations.Core</AssemblyName>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <Description>Typed migrations for MongoDB</Description> 
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="2020.1.0">
