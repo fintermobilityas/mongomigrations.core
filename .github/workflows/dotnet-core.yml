@@ -1,14 +1,12 @@
-name: dotnetmongomigrations
+name: mongomigrations.core
 
 on: push
 
 env:
-  GPR_VERSION: 0.1.125
-  MONGODB_VERSION: 4.2.7
+  MONGODB_VERSION: 4.2.8
   GITVERSION_VERSION: 5.3.4
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1 
-  FINTER_NUGET_FEED: https://nuget.pkg.github.com/fintermobilityas/index.json
 
 jobs:
 
@@ -21,7 +19,9 @@ jobs:
     steps:
       
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v2.2.0
+        with:
+          fetch-depth: 0
       
       - if: matrix.os == 'windows-latest'
         name: Setup mongodb v${{ env.MONGODB_VERSION }}
@@ -47,19 +47,8 @@ jobs:
         with:
           mongodb-version: ${{ env.MONGODB_VERSION }}
                                     
-      - name: Fetch all history for all tags and branches (gitversion requirement)
-        run: git fetch --prune --unshallow
-                      
-      - name: Read dotnet sdk version from global.json
-        shell: pwsh
-        run: |
-          $DOTNET_VERSION = Get-Content ".\$GITHUB_WORKSPACE\global.json" | ConvertFrom-Json | Select-Object -Expand sdk | Select-Object -Expand version    
-          echo "::set-env name=DOTNET_VERSION::$DOTNET_VERSION"
-          
-      - name: Setup dotnet
-        uses: actions/setup-dotnet@v1.4.0
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Setup dotnet using global.json
+        uses: actions/setup-dotnet@v1.5.0
 
       - id: set-version
         name: Setup GitVersion and set build version
@@ -89,11 +78,7 @@ jobs:
      name: Publish nuget package
      needs: [build]
      steps:
-      
-      - name: Setup gpr v${{ env.GPR_VERSION }} 
-        shell: pwsh
-        run: dotnet tool update gpr --global --version ${{ env.GPR_VERSION }}
-        
+
       - name: Download nupkgs
         uses: actions/download-artifact@v2
         with:
@@ -101,13 +86,16 @@ jobs:
           path: ${{ github.workspace }}/nupkgs
           
       - name: Push nuget packages
+        if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master' 
         shell: pwsh
         run: | 
-          $nupkg_fullpath = Get-ChildItem ".\${{ env.GITHUB_WORKSPACE }}\nupkgs" -Filter *.nupkg | ForEach-Object { $_.FullName } | Select-Object -First 1
           $nupkg_version = Get-Content ".\${{ env.GITHUB_WORKSPACE }}\nupkgs\nupkg_version.txt"
-                  
-          gpr push $nupkg_fullpath --api-key ${{ secrets.FINTER_NUGET_GITHUB_PACKAGES_TOKEN }}
-          echo "::set-env name=NUPKG_VERSION::$nupkg_version"
+          echo "::set-env name=NUPKG_VERSION::$nupkg_version"                  
+          
+          $nupkgs = Get-ChildItem ".\${{ env.GITHUB_WORKSPACE }}\nupkgs" -Filter *.nupkg | Select-Object -ExpandProperty FullName          
+          $nupkgs | ForEach-Object -Parallel {
+            dotnet nuget push $_ --source nuget.org --api-key ${{ secrets.PETERSUNDE_NUGET_ORG_API_KEY }}       
+          }          
 
       - name: Create github release tag
         if: success() && github.ref == 'refs/heads/master'
