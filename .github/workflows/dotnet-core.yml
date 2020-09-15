@@ -3,8 +3,8 @@ name: mongomigrations.core
 on: push
 
 env:
-  MONGODB_VERSION: 4.2.8
-  GITVERSION_VERSION: 5.3.4
+  MONGODB_VERSION: 4.4.0
+  GITVERSION_VERSION: 5.3.7
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1 
 
@@ -27,10 +27,10 @@ jobs:
         name: Setup mongodb v${{ env.MONGODB_VERSION }}
         shell: pwsh
         env:
-          MONGODB_SERVER_FILENAME: mongodb-win32-x86_64-2012plus-${{ env.MONGODB_VERSION }}-signed.msi
+          MONGODB_SERVER_FILENAME: mongodb-windows-x86_64-${{ env.MONGODB_VERSION }}-signed.msi
         run: |
           mkdir -p software/mongodb | Out-Null
-          Start-BitsTransfer https://fastdl.mongodb.org/win32/${{ env.MONGODB_SERVER_FILENAME }} ./software/mongodb/${{ env.MONGODB_SERVER_FILENAME }}
+          Start-BitsTransfer https://fastdl.mongodb.org/windows/${{ env.MONGODB_SERVER_FILENAME }} ./software/mongodb/${{ env.MONGODB_SERVER_FILENAME }}
           $ArgumentList = @(
             'ADDLOCAL="ServerService"'
             'SHOULD_INSTALL_COMPASS="0"'
