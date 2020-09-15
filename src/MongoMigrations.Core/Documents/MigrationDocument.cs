@@ -19,7 +19,7 @@ namespace MongoMigrations.Core.Documents
 
         [UsedImplicitly] public BsonDocument BsonDocument { get; }
         [UsedImplicitly] public BsonValue this[string name] => BsonDocument[name];
-        [UsedImplicitly] public List<string> WriteModelsJsonDebug => WriteModelsBsonDebug.Select(x => x?.ToJson(new JsonWriterSettings { OutputMode = JsonOutputMode.Strict })).ToList();
+        [UsedImplicitly] public List<string> WriteModelsJsonDebug => WriteModelsBsonDebug.Select(x => x?.ToJson(new JsonWriterSettings { OutputMode = JsonOutputMode.CanonicalExtendedJson })).ToList();
         [UsedImplicitly] public List<BsonDocument> WriteModelsBsonDebug => this.Select(x => x.Model?.ToWriteModelBsonDocument()).ToList();
         [UsedImplicitly] public int WriteModelsCount => this.Count();
         [UsedImplicitly] public FilterDefinition<BsonDocument> ByDocumentIdFilter()
