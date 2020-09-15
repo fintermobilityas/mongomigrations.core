@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
@@ -14,7 +13,7 @@ namespace MongoMigrations.Core
     public interface IMigrationRunner
     {
         IMongoDatabase Database { get; }
-        [UsedImplicitly] IMigrationLocator MigrationLocator { get; }
+        [JetBrains.Annotations.UsedImplicitly] IMigrationLocator MigrationLocator { get; }
         IDatabaseMigrationStatus DatabaseStatus { get; }
         void UpdateToLatest(string serverName = null);
         bool IsDatabaseUpToDate();
@@ -32,7 +31,7 @@ namespace MongoMigrations.Core
             BsonSerializer.RegisterSerializer(typeof(MigrationVersion), new MigrationVersionSerializer());
         }
 
-        [UsedImplicitly]
+        [JetBrains.Annotations.UsedImplicitly]
         public MigrationRunner([NotNull] string connectionString, [NotNull] string database) : this(new MongoClient(connectionString).GetDatabase(database))
         {
             if (connectionString == null) throw new ArgumentNullException(nameof(connectionString));

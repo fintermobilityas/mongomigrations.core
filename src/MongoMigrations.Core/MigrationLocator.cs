@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
 
 namespace MongoMigrations.Core
 {
@@ -41,7 +40,7 @@ namespace MongoMigrations.Core
             _migrationsDictionary[assembly.FullName] = migrations ?? throw new ArgumentNullException(nameof(migrations));
         }
 
-        [UsedImplicitly]
+        [JetBrains.Annotations.UsedImplicitly]
         public void LookForMigrationsInAssemblyOfType<T>()
         {
             var assembly = typeof(T).Assembly;
