@@ -22,7 +22,7 @@ namespace MongoMigrations.Core.Documents
         readonly Func<MigrationForEachDocument, IWriteModel> _enumeratorFunc;
         readonly List<IWriteModel> _writeModels;
 
-        [UsedImplicitly] public List<string> JsonDocuments => BsonDocuments.Select(x => x?.ToJson(new JsonWriterSettings { OutputMode = JsonOutputMode.Strict })).ToList();
+        [UsedImplicitly] public List<string> JsonDocuments => BsonDocuments.Select(x => x?.ToJson(new JsonWriterSettings { OutputMode = JsonOutputMode.CanonicalExtendedJson })).ToList();
         [UsedImplicitly] public List<BsonDocument> BsonDocuments => this.Select(x => x.Model?.ToWriteModelBsonDocument()).ToList();
 
         public MigrationForEachDocuments([NotNull] FilterDefinition<BsonDocument> parentFilterDefinition, [NotNull] string name, [NotNull] BsonArray bsonArray, [NotNull] Func<MigrationForEachDocument, IWriteModel> enumeratorFunc)

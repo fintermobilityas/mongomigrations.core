@@ -11,7 +11,7 @@ namespace MongoMigrations.Core.Documents
     public sealed class MigrationDeleteDocument : IWriteModel
     {
         public WriteModel<BsonDocument> Model { get; }
-        [UsedImplicitly] public string JsonDocument => BsonDocument?.ToJson(new JsonWriterSettings { OutputMode = JsonOutputMode.Strict });
+        [UsedImplicitly] public string JsonDocument => BsonDocument?.ToJson(new JsonWriterSettings { OutputMode = JsonOutputMode.CanonicalExtendedJson });
         [UsedImplicitly] public BsonDocument BsonDocument => Model?.ToWriteModelBsonDocument();
 
         public MigrationDeleteDocument([NotNull] FilterDefinition<BsonDocument> filterDefinition)

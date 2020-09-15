@@ -11,7 +11,7 @@ namespace MongoMigrations.Core.Documents
     public sealed class MigrationUpdateDocument : IWriteModel
     {
         public WriteModel<BsonDocument> Model { get; }
-        [UsedImplicitly] public string JsonDocument => BsonDocument?.ToJson(new JsonWriterSettings { OutputMode = JsonOutputMode.Strict });
+        [UsedImplicitly] public string JsonDocument => BsonDocument?.ToJson(new JsonWriterSettings { OutputMode = JsonOutputMode.CanonicalExtendedJson });
         [UsedImplicitly] public BsonDocument BsonDocument => Model?.ToWriteModelBsonDocument();
 
         public MigrationUpdateDocument([NotNull] FilterDefinition<BsonDocument> filterDefinition, [NotNull] UpdateDefinition<BsonDocument> updateDefinition)
