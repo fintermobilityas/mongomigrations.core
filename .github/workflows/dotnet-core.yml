@@ -112,9 +112,8 @@ jobs:
         shell: pwsh
         run: | 
           $nupkg_version = Get-Content ".\${{ env.GITHUB_WORKSPACE }}\nupkgs\nupkg_version.txt"
-          echo "NUPKG_VERSION=$NUPKG_VERSION" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-                  
-          
+          echo "NUPKG_VERSION=$nupkg_version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+                            
           $nupkgs = Get-ChildItem ".\${{ env.GITHUB_WORKSPACE }}\nupkgs" -Filter *.nupkg | Select-Object -ExpandProperty FullName          
           $nupkgs | ForEach-Object {
             dotnet nuget push $_ --source nuget.org --api-key ${{ secrets.NUGET_THIS_REPO_API_KEY }}  
