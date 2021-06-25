@@ -200,7 +200,7 @@ namespace MongoMigrations.Core
 
             if (Projection != null)
             {
-                cursor.Project(Projection);
+                cursor = cursor.Project(Projection);
             }
 
             return cursor.ToCursor();
