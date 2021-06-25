@@ -7,7 +7,7 @@ namespace MongoMigrations.Core
     {
         public int Version { get; }
 
-        public static MigrationVersion Default => new MigrationVersion(0);
+        public static MigrationVersion Default => new(0);
 
         public MigrationVersion(int version)
         {
