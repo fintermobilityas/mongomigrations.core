@@ -34,7 +34,7 @@ namespace MongoMigrations.Core
     public interface ISupportProjection : IMigrationProperty
     {
         [UsedImplicitly]
-        ProjectionDefinition<BsonDocument> Project { get; set; }
+        ProjectionDefinition<BsonDocument> Projection { get; set; }
     }
 
     public interface ISupportOnBeforeMigration : IMigrationInvokable
