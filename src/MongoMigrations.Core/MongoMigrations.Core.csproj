@@ -8,7 +8,7 @@
     <Description>Typed migrations for MongoDB</Description> 
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="JetBrains.Annotations" Version="2021.2.0">
+    <PackageReference Include="JetBrains.Annotations" Version="2021.3.0">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="MongoDB.Driver" Version="2.13.2" />
