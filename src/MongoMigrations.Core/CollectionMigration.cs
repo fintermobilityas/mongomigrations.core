@@ -38,7 +38,7 @@ namespace MongoMigrations.Core
         public string CollectionName { get; }
         public int BatchSize { get; set; } = 1000;
         public FilterDefinition<BsonDocument> Filter { get; set; } = FilterDefinition<BsonDocument>.Empty;
-        public ProjectionDefinition<BsonDocument> Project { get; set; } 
+        public ProjectionDefinition<BsonDocument> Projection { get; set; } 
 
         [UsedImplicitly]
         [NotNull] public abstract IEnumerable<IWriteModel> MigrateDocument(MigrationDocument document);
@@ -55,60 +55,65 @@ namespace MongoMigrations.Core
 
         public override void Update()
         {
-            var buffer = new List<IWriteModel>();
-            var skip = 0;
+            var writeModelDocuments = new List<IWriteModel>();
+            var cursorDocuments = new List<BsonDocument>();
+
+            using var dbCursor = GetCursor();
 
             void Flush()
             {
-                foreach (var batch in buffer.Batch(BatchSize))
+                try
                 {
-                    var writeModels = batch.Select(x => x.Model).ToList();
-                    Collection.BulkWrite(writeModels);
-                    DocumentsDeletedCount += writeModels.Count(x => x is DeleteOneModel<BsonDocument>);
-                }
+                    foreach (var batch in writeModelDocuments.Batch(BatchSize))
+                    {
+                        var writeModels = batch.Select(x => x.Model).ToList();
+                        Collection.BulkWrite(writeModels);
+                        DocumentCount += writeModels.Count;
+                        DocumentsDeletedCount += writeModels.Count(x => x is DeleteOneModel<BsonDocument>);
+                    }
 
-                buffer.Clear();
+                    writeModelDocuments.Clear();
+                }
+                catch (Exception e)
+                {
+                    ThrowErrorUpdatingDocuments(e);
+                }
             }
 
-            while (true)
+            while (dbCursor.MoveNext())
             {
-                var documents = GetDocuments(skip - DocumentsDeletedCount);
-                if (documents.Any())
+                foreach (var document in dbCursor.Current)
                 {
-                    DocumentCount += documents.Count;
+                    cursorDocuments.Add(document);
 
                     try
                     {
-                        buffer.AddRange(MigrateDocuments(documents));
-
-                        if (buffer.Count >= BatchSize)
+                        if (cursorDocuments.Count >= BatchSize)
                         {
+                            writeModelDocuments.AddRange(BuildMigrationDocuments(cursorDocuments));
+                            cursorDocuments.Clear();
+
                             Flush();
                         }
+                    }
+                    catch (MigrationException)
+                    {
+                        throw;
                     }
                     catch (Exception exception)
                     {
                         ThrowErrorUpdatingDocuments(exception);
                     }
-
-                    skip += documents.Count;
-                    continue;
                 }
-
-                try
-                {
-                    Flush();
-                }
-                catch (Exception exception)
-                {
-                    ThrowErrorUpdatingDocuments(exception);
-                }
-
-                break;
             }
+
+            writeModelDocuments.AddRange(BuildMigrationDocuments(cursorDocuments));
+            cursorDocuments.Clear();
+
+            Flush();
         }
 
-        IEnumerable<IWriteModel> MigrateDocuments(IEnumerable<BsonDocument> documents)
+        IEnumerable<IWriteModel> BuildMigrationDocuments(IEnumerable<BsonDocument> documents)
         {
             var writeModels = new List<IWriteModel>();
             foreach (var document in documents)
@@ -185,21 +190,20 @@ namespace MongoMigrations.Core
             throw new MigrationException(message.ToString(), exception);
         }
 
-        List<BsonDocument> GetDocuments(int skip = 0)
+        IAsyncCursor<BsonDocument> GetCursor()
         {
             var filterDefinition = Filter ?? FilterDefinition<BsonDocument>.Empty;
-            var cursor = Collection.Find(filterDefinition);
-
-            cursor
-                .Skip(skip)
-                .Limit(BatchSize);
-
-            if (Project != null)
+            var cursor = Collection.Find(filterDefinition, new FindOptions
             {
-                cursor.Project(Project);
+                BatchSize = BatchSize
+            });
+
+            if (Projection != null)
+            {
+                cursor = cursor.Project(Projection);
             }
 
-            return cursor.ToList();
+            return cursor.ToCursor();
         }
 
     }
