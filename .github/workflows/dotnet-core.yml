@@ -70,7 +70,7 @@ jobs:
           
       - if: matrix.os == 'ubuntu-latest'
         name: Setup mongodb v${{ env.MONGODB_VERSION }}
-        uses: supercharge/mongodb-github-action@1.7.0
+        uses: supercharge/mongodb-github-action@1.8.0
         with:
           mongodb-version: ${{ env.MONGODB_VERSION }}
                                     
