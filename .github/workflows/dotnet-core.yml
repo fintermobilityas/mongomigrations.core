@@ -3,7 +3,7 @@ name: mongomigrations.core
 on: push
 
 env:
-  MONGODB_VERSION: 6.0.1
+  MONGODB_VERSION: 6.0.2
   GITVERSION_VERSION: 5.10.3
   DOTNET_SDK_VERSION: 6.0.402
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
@@ -43,31 +43,13 @@ jobs:
       BUILD_VERSION: ${{ needs.setup.outputs.BUILD_VERSION }}
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest]
+        os: [ubuntu-latest]
     steps:      
       - name: Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      
-      - if: matrix.os == 'windows-latest'
-        name: Setup mongodb v${{ env.MONGODB_VERSION }}
-        shell: pwsh
-        env:
-          MONGODB_SERVER_FILENAME: mongodb-windows-x86_64-${{ env.MONGODB_VERSION }}-signed.msi
-        run: |
-          mkdir -p software/mongodb | Out-Null
-          Start-BitsTransfer https://fastdl.mongodb.org/windows/${{ env.MONGODB_SERVER_FILENAME }} ./software/mongodb/${{ env.MONGODB_SERVER_FILENAME }}
-          $ArgumentList = @(
-            'ADDLOCAL="ServerService"'
-            'SHOULD_INSTALL_COMPASS="0"'
-            'MONGO_DATA_PATH="${{ github.workspace }}\software\mongodb\data"'
-            'MONGO_LOG_PATH="${{ github.workspace }}\software\mongodb\logs"'
-            'INSTALLLOCATION="${{ github.workspace }}\software\mongodb\server"'
-            '/qn /norestart'
-          ) -Join " ";
-          Start-Process ./software/mongodb/${{ env.MONGODB_SERVER_FILENAME }} -Wait -ArgumentList "$ArgumentList"
-          
+ 
       - if: matrix.os == 'ubuntu-latest'
         name: Setup mongodb v${{ env.MONGODB_VERSION }}
         uses: supercharge/mongodb-github-action@1.8.0
@@ -103,7 +85,7 @@ jobs:
       - name: Download nupkgs
         uses: actions/download-artifact@v3
         with:
-          name: nupkgs-windows-latest
+          name: nupkgs-ubuntu-latest
           path: ${{ github.workspace }}/nupkgs
           
       - name: Push nuget packages
