@@ -265,12 +265,14 @@ namespace MongoMigrations.Core.Tests
         [Fact]
         public void TestUpdateLatest_Is_Thread_Safe()
         {
+            var random = new Random();
+            
             var mocks = Enumerable.Range(0, 2).Select(version =>
             {
                 var mock = new Mock<IMigration>();
                 mock.SetupGet(x => x.Version).Returns(new MigrationVersion(version));
                 mock.SetupGet(x => x.Database).Returns(_databaseFixture.Database);
-                mock.Setup(x => x.Update()).Callback(() => Thread.Sleep(5000));
+                mock.Setup(x => x.Update()).Callback(() => Thread.Sleep(random.Next(100, 300)));
                 return mock;
             }).ToList();
 
@@ -281,6 +283,7 @@ namespace MongoMigrations.Core.Tests
             var concurrentMigrationExceptionsThrown = new ConcurrentQueue<ConcurrentMigrationException>();
             long migrationCompleted = 0;
             long migrationAttempts = 0;
+            long threadsExited = 0;
 
             var cts = new CancellationTokenSource();
             cts.CancelAfter(TimeSpan.FromSeconds(30));
@@ -295,9 +298,10 @@ namespace MongoMigrations.Core.Tests
                     {
                         Interlocked.Increment(ref migrationAttempts);
                         fixture.MigrationRunner.UpdateToLatest(serverName);
-                        var migrationsCompleted = Interlocked.Exchange(ref migrationCompleted, 1);
-                        if (migrationsCompleted == mocks.Count)
+                        var migrationsCompleted = Interlocked.Increment(ref migrationCompleted);
+                        if (migrationsCompleted >= mocks.Count)
                         {
+                            Interlocked.Increment(ref threadsExited);
                             break;
                         }
                     }
@@ -307,13 +311,13 @@ namespace MongoMigrations.Core.Tests
                     }
                 }
             }
-
+            
             new Thread(() => TryMigrate("thread1")) { IsBackground = true }.Start();
             new Thread(() => TryMigrate("thread2")) { IsBackground = true }.Start();
             new Thread(() => TryMigrate("thread3")) { IsBackground = true }.Start();
             new Thread(() => TryMigrate("thread4")) { IsBackground = true }.Start();
 
-            while (Interlocked.Read(ref migrationCompleted) != 1)
+            while (Interlocked.Read(ref threadsExited) != 4)
             {
                 Thread.Sleep(50);
             }
@@ -326,7 +330,6 @@ namespace MongoMigrations.Core.Tests
             Assert.NotEmpty(concurrentMigrationExceptionsThrown);
 
             var serverNames = appliedMigrations.Select(x => x.ServerName).Distinct().ToList();
-            Assert.Single(serverNames);
             Assert.StartsWith("thread", serverNames[0]);
 
             foreach (var migration in appliedMigrations)

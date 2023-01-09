@@ -96,7 +96,7 @@ namespace MongoMigrations.Core
 
             static void InvokeIf<TFeature>(IMigration migration, Action<TFeature> action) where TFeature : IMigrationInvokable
             {
-                if (!(migration is TFeature tFeature)) return;
+                if (migration is not TFeature tFeature) return;
                 action?.Invoke(tFeature);
             }
 
