@@ -15,9 +15,9 @@ namespace MongoMigrations.Core
         IMongoCollection<AppliedMigration> Collection { get; }
         void AddIndexes();
         List<AppliedMigration> GetMigrations();
-        bool IsMigrationInProgress();
+        bool IsMigrationInProgress(CancellationToken cancellationToken = default);
         Task<bool> IsMigrationInProgressAsync(CancellationToken cancellationToken = default);
-        AppliedMigration GetLastAppliedMigration();
+        AppliedMigration GetLastAppliedMigration(CancellationToken cancellationToken = default);
         Task<AppliedMigration> GetLastAppliedMigrationAsync(CancellationToken cancellationToken = default);
         AppliedMigration StartMigration([NotNull] IMigration migration, string serverName);
         void FailMigration(AppliedMigration appliedMigration, Exception exception);
@@ -57,9 +57,9 @@ namespace MongoMigrations.Core
                 .ToList();
         }
 
-        public AppliedMigration GetLastAppliedMigration()
+        public AppliedMigration GetLastAppliedMigration(CancellationToken cancellationToken = default)
         {
-            return _getLastApplicationMigrationBuilder.FirstOrDefault();
+            return _getLastApplicationMigrationBuilder.FirstOrDefault(cancellationToken);
         }
 
         public Task<AppliedMigration> GetLastAppliedMigrationAsync(CancellationToken cancellationToken = default)
@@ -67,11 +67,11 @@ namespace MongoMigrations.Core
             return _getLastApplicationMigrationBuilder.FirstOrDefaultAsync(cancellationToken);
         }
 
-        public bool IsMigrationInProgress()
+        public bool IsMigrationInProgress(CancellationToken cancellationToken)
         {
             return Collection
                 .Find(Builders<AppliedMigration>.Filter.Eq(x => x.CompletedOn, null))
-                .CountDocuments() > 0;
+                .CountDocuments(cancellationToken) > 0;
         }
 
         public async Task<bool> IsMigrationInProgressAsync(CancellationToken cancellationToken = default)

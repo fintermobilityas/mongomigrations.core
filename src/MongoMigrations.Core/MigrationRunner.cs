@@ -16,7 +16,7 @@ namespace MongoMigrations.Core
         [JetBrains.Annotations.UsedImplicitly] IMigrationLocator MigrationLocator { get; }
         IDatabaseMigrationStatus DatabaseStatus { get; }
         void UpdateToLatest(string serverName = null);
-        bool IsDatabaseUpToDate();
+        bool IsDatabaseUpToDate(CancellationToken cancellationToken = default);
         Task<bool> IsDatabaseUpToDateAsync(CancellationToken cancellationToken = default);
     }
 
@@ -45,15 +45,15 @@ namespace MongoMigrations.Core
             MigrationLocator = migrationLocator ?? new MigrationLocator();
         }
 
-        public bool IsDatabaseUpToDate()
+        public bool IsDatabaseUpToDate(CancellationToken cancellationToken = default)
         {
-            if (DatabaseStatus.IsMigrationInProgress())
+            if (DatabaseStatus.IsMigrationInProgress(cancellationToken))
             {
                 return false;
             }
 
             var currentMigrationVersion = MigrationLocator.GetLatestVersion();
-            var lastMigration = DatabaseStatus.GetLastAppliedMigration();
+            var lastMigration = DatabaseStatus.GetLastAppliedMigration(cancellationToken);
             return lastMigration?.CompletedOn != null && lastMigration.Version.Equals(currentMigrationVersion);
         }
 
