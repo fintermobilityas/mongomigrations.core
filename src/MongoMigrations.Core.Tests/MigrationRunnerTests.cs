@@ -128,7 +128,7 @@ namespace MongoMigrations.Core.Tests
 
             fixture.MigrationRunner.UpdateToLatest();
 
-            Assert.True(fixture.MigrationRunner.IsDatabaseUpToDate());
+            Assert.True(fixture.MigrationRunner.IsDatabaseUpToDate(default));
 
             migrations = fixture.MigrationRunner.DatabaseStatus.GetMigrations();
             Assert.Equal(2, migrations.Count);
@@ -137,6 +137,76 @@ namespace MongoMigrations.Core.Tests
             Assert.NotNull(migrations[0].CompletedOn);
             Assert.Equal(2, migrations[1].Version.Version);
             Assert.NotNull(migrations[1].CompletedOn);
+        }
+
+        [Fact]
+        public void TestUpdateToLatest_IsNotLatestVersion()
+        {
+            var migration1Mock = new Mock<IMigration>();
+            migration1Mock.SetupGet(x => x.Version).Returns(new MigrationVersion(1));
+            migration1Mock.SetupGet(x => x.Database).Returns(_databaseFixture.Database);
+
+            var migration2Mock = new Mock<IMigration>();
+            migration2Mock.SetupGet(x => x.Version).Returns(new MigrationVersion(2));
+            migration2Mock.SetupGet(x => x.Database).Returns(_databaseFixture.Database);
+
+            var migrationLocator = new MigrationLocator(typeof(MigrationLocatorTests).Assembly, new List<IMigration>
+            {
+                migration1Mock.Object,
+                migration2Mock.Object
+            });
+
+            using var fixture = new MigrationRunnerFixture(_databaseFixture, migrationLocator);
+            fixture.Collection.InsertOne(new AppliedMigration(migration1Mock.Object) { CompletedOn = DateTime.Now });
+
+            var migrations = fixture.MigrationRunner.DatabaseStatus.GetMigrations();
+            Assert.Single(migrations);
+
+            Assert.False(fixture.MigrationRunner.IsDatabaseUpToDate(default));
+
+            migrations = fixture.MigrationRunner.DatabaseStatus.GetMigrations();
+            Assert.Single(migrations);
+
+            Assert.Equal(1, migrations[0].Version.Version);
+            Assert.NotNull(migrations[0].CompletedOn);
+        }
+        
+        [Fact]
+        public void TestUpdateToLatest_IsNotLatestVersion_MigrationFailed()
+        {
+            var migration1Mock = new Mock<IMigration>();
+            migration1Mock.SetupGet(x => x.Version).Returns(new MigrationVersion(1));
+            migration1Mock.SetupGet(x => x.Database).Returns(_databaseFixture.Database);
+
+            var migration2Mock = new Mock<IMigration>();
+            migration2Mock.SetupGet(x => x.Version).Returns(new MigrationVersion(2));
+            migration2Mock.SetupGet(x => x.Database).Returns(_databaseFixture.Database);
+
+            var migrationLocator = new MigrationLocator(typeof(MigrationLocatorTests).Assembly, new List<IMigration>
+            {
+                migration1Mock.Object,
+                migration2Mock.Object
+            });
+
+            using var fixture = new MigrationRunnerFixture(_databaseFixture, migrationLocator);
+            fixture.Collection.InsertOne(new AppliedMigration(migration1Mock.Object) { CompletedOn = DateTime.Now });
+            fixture.Collection.InsertOne(new AppliedMigration(migration2Mock.Object) { FailedOn = DateTime.Now });
+
+            var migrations = fixture.MigrationRunner.DatabaseStatus.GetMigrations();
+            Assert.Equal(2, migrations.Count);
+
+            Assert.False(fixture.MigrationRunner.IsDatabaseUpToDate(default));
+
+            migrations = fixture.MigrationRunner.DatabaseStatus.GetMigrations();
+            Assert.Equal(2, migrations.Count);
+
+            Assert.Equal(1, migrations[0].Version.Version);
+            Assert.NotNull(migrations[0].CompletedOn);
+            Assert.Null(migrations[0].FailedOn);
+            
+            Assert.Equal(2, migrations[1].Version.Version);
+            Assert.Null(migrations[1].CompletedOn);
+            Assert.NotNull(migrations[1].FailedOn);
         }
 
         [Fact]
@@ -157,7 +227,7 @@ namespace MongoMigrations.Core.Tests
             var ex = Assert.Throws<MigrationException>(() => fixture.MigrationRunner.UpdateToLatest());
             Assert.StartsWith("{ Message = Migration failed to be applied: YOLO", ex.Message);
 
-            Assert.False(fixture.MigrationRunner.IsDatabaseUpToDate());
+            Assert.False(fixture.MigrationRunner.IsDatabaseUpToDate(default));
 
             var migrations = fixture.MigrationRunner.DatabaseStatus.GetMigrations();
             Assert.Single(migrations);
@@ -184,7 +254,7 @@ namespace MongoMigrations.Core.Tests
 
             fixture.MigrationRunner.UpdateToLatest();
 
-            Assert.True(fixture.MigrationRunner.IsDatabaseUpToDate());
+            Assert.True(fixture.MigrationRunner.IsDatabaseUpToDate(default));
 
             migrations = fixture.MigrationRunner.DatabaseStatus.GetMigrations();
             Assert.Single(migrations);
@@ -248,7 +318,7 @@ namespace MongoMigrations.Core.Tests
                 Thread.Sleep(50);
             }
 
-            Assert.True(fixture.MigrationRunner.IsDatabaseUpToDate());
+            Assert.True(fixture.MigrationRunner.IsDatabaseUpToDate(default));
             Assert.True(Interlocked.Read(ref migrationAttempts) >= mocks.Count);
 
             var appliedMigrations = fixture.MigrationRunner.DatabaseStatus.GetMigrations();

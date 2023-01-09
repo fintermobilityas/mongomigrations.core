@@ -16,8 +16,8 @@ namespace MongoMigrations.Core
         [JetBrains.Annotations.UsedImplicitly] IMigrationLocator MigrationLocator { get; }
         IDatabaseMigrationStatus DatabaseStatus { get; }
         void UpdateToLatest(string serverName = null);
-        bool IsDatabaseUpToDate(CancellationToken cancellationToken = default);
-        Task<bool> IsDatabaseUpToDateAsync(CancellationToken cancellationToken = default);
+        bool IsDatabaseUpToDate(ReadPreference readPreference, CancellationToken cancellationToken = default);
+        Task<bool> IsDatabaseUpToDateAsync(ReadPreference readPreference, CancellationToken cancellationToken = default);
     }
 
     public sealed class MigrationRunner : IMigrationRunner
@@ -53,26 +53,16 @@ namespace MongoMigrations.Core
             MigrationLocator = migrationLocator ?? new MigrationLocator();
         }
 
-        public bool IsDatabaseUpToDate(CancellationToken cancellationToken = default)
+        public bool IsDatabaseUpToDate(ReadPreference readPreference, CancellationToken cancellationToken = default)
         {
-            if (DatabaseStatus.IsMigrationInProgress(cancellationToken))
-            {
-                return false;
-            }
-
-            var lastMigration = DatabaseStatus.GetLastAppliedMigration(cancellationToken);
-            return lastMigration?.CompletedOn != null && lastMigration.Version.Equals(GetLatestVersion());
+            var latestVersion = GetLatestVersion();
+            return DatabaseStatus.IsDatabaseUpToDate(latestVersion, readPreference, cancellationToken);
         }
 
-        public async Task<bool> IsDatabaseUpToDateAsync(CancellationToken cancellationToken = default)
+        public async Task<bool> IsDatabaseUpToDateAsync(ReadPreference readPreference, CancellationToken cancellationToken = default)
         {
-            if (await DatabaseStatus.IsMigrationInProgressAsync(cancellationToken).ConfigureAwait(false))
-            {
-                return false;
-            }
-
-            var lastMigration = await DatabaseStatus.GetLastAppliedMigrationAsync(cancellationToken).ConfigureAwait(false);
-            return lastMigration?.CompletedOn != null && lastMigration.Version.Equals(GetLatestVersion());
+            var latestVersion = GetLatestVersion();
+            return await DatabaseStatus.IsDatabaseUpToDateAsync(latestVersion, readPreference, cancellationToken);
         }
 
         public void UpdateToLatest(string serverName = null)

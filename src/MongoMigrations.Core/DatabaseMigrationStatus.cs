@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace MongoMigrations.Core
@@ -15,6 +16,8 @@ namespace MongoMigrations.Core
         IMongoCollection<AppliedMigration> Collection { get; }
         void AddIndexes();
         List<AppliedMigration> GetMigrations();
+        bool IsDatabaseUpToDate(MigrationVersion latestVersion, ReadPreference readPreference, CancellationToken cancellationToken);
+        Task<bool> IsDatabaseUpToDateAsync(MigrationVersion latestVersion, ReadPreference readPreference, CancellationToken cancellationToken);
         bool IsMigrationInProgress(CancellationToken cancellationToken = default);
         Task<bool> IsMigrationInProgressAsync(CancellationToken cancellationToken = default);
         AppliedMigration GetLastAppliedMigration(CancellationToken cancellationToken = default);
@@ -26,6 +29,7 @@ namespace MongoMigrations.Core
 
     public sealed class DatabaseMigrationStatus : IDatabaseMigrationStatus
     {
+        readonly ReadPreference _defaultReadPreference = ReadPreference.Primary;
         readonly IMigrationRunner _runner;
         IMongoCollection<AppliedMigration> _collection;
         readonly IOrderedFindFluent<AppliedMigration, AppliedMigration> _getLastApplicationMigrationBuilder;
@@ -46,6 +50,7 @@ namespace MongoMigrations.Core
 
         public void AddIndexes()
         {
+            Collection.Indexes.CreateOne(new CreateIndexModel<AppliedMigration>(new IndexKeysDefinitionBuilder<AppliedMigration>().Descending(x => x.Version).Descending(x => x.CompletedOn)));
             Collection.Indexes.CreateOne(new CreateIndexModel<AppliedMigration>(new IndexKeysDefinitionBuilder<AppliedMigration>().Ascending(x => x.CompletedOn)));
         }
 
@@ -57,6 +62,25 @@ namespace MongoMigrations.Core
                 .ToList();
         }
 
+        public bool IsDatabaseUpToDate(MigrationVersion latestVersion, ReadPreference readPreference, CancellationToken cancellationToken)
+        {
+            var pipelineDefinition = BuildIsDatebaseUpToDatePipelineDefinition(latestVersion);
+            var latestAppliedMigration = WithReadPreference(readPreference)
+                .Aggregate(pipelineDefinition)
+                .FirstOrDefault(cancellationToken);
+            return latestAppliedMigration != null && latestAppliedMigration.Version != MigrationVersion.Default;
+        }
+        
+        public async Task<bool> IsDatabaseUpToDateAsync(MigrationVersion latestVersion, ReadPreference readPreference, CancellationToken cancellationToken)
+        {
+            var pipelineDefinition = BuildIsDatebaseUpToDatePipelineDefinition(latestVersion);
+            var latestAppliedMigration = await 
+                WithReadPreference(readPreference)
+                .Aggregate(pipelineDefinition)
+                .FirstOrDefaultAsync(cancellationToken);
+            return latestAppliedMigration != null && latestAppliedMigration.Version != MigrationVersion.Default;
+        }
+        
         public AppliedMigration GetLastAppliedMigration(CancellationToken cancellationToken = default)
         {
             return _getLastApplicationMigrationBuilder.FirstOrDefault(cancellationToken);
@@ -111,5 +135,41 @@ namespace MongoMigrations.Core
             Collection.UpdateOne(Builders<AppliedMigration>.Filter.Eq(x => x.Version, appliedMigration.Version),
                 Builders<AppliedMigration>.Update.Set(x => x.CompletedOn, appliedMigration.CompletedOn));
         }
+        
+        IMongoCollection<AppliedMigration> WithReadPreference(ReadPreference readPreference = null) => 
+            Collection.WithReadPreference(readPreference ?? _defaultReadPreference);
+
+        static PipelineDefinition<AppliedMigration, AppliedMigration> BuildIsDatebaseUpToDatePipelineDefinition(MigrationVersion latestVersion) =>
+            new List<BsonDocument>
+            {
+                new()
+                {
+                    {
+                        "$sort", new BsonDocument
+                        {
+                            { "_id", -1 }
+                        }
+                    }
+                },
+                new()
+                {
+                    { "$limit", 1 }
+                },
+                new()
+                {
+                    {
+                        "$match", new BsonDocument
+                        {
+                            { "_id", latestVersion.Version },
+                            {
+                                "CompletedOn", new BsonDocument
+                                {
+                                    { "$ne", BsonNull.Value }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
     }
 }
