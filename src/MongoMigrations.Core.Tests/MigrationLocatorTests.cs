@@ -36,16 +36,6 @@ namespace MongoMigrations.Core.Tests
         }
 
         [Fact]
-        public async Task TestGetLatestVersionAsync()
-        {
-            AddMigrations();
-
-            var latestVersion = await _migrationLocator.GetLatestVersionAsync();
-            Assert.Equal(new MigrationVersion(1), latestVersion);
-            Assert.Equal(1, latestVersion.Version);
-        }
-
-        [Fact]
         public void TestGetLatestVersion_No_Prior_Migrations()
         {
             Assert.Empty(_migrationLocator.GetAllMigrations());

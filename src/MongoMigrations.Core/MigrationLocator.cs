@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace MongoMigrations.Core
 {
@@ -16,7 +14,6 @@ namespace MongoMigrations.Core
         void LookForMigrationsInAssembly([NotNull] Assembly assembly);
         IEnumerable<IMigration> GetAllMigrations();
         MigrationVersion GetLatestVersion();
-        Task<MigrationVersion> GetLatestVersionAsync(CancellationToken cancellationToken = default);
         IEnumerable<IMigration> GetMigrationsAfter([NotNull] AppliedMigration appliedMigration);
     }
 
@@ -104,11 +101,6 @@ namespace MongoMigrations.Core
             var migrations = GetAllMigrations().ToList();
 
             return !migrations.Any() ? MigrationVersion.Default : migrations.Max(m => m.Version);
-        }
-
-        public Task<MigrationVersion> GetLatestVersionAsync(CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(GetLatestVersion());
         }
 
         public IEnumerable<IMigration> GetMigrationsAfter(AppliedMigration appliedMigration)

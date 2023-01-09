@@ -22,6 +22,9 @@ namespace MongoMigrations.Core
 
     public sealed class MigrationRunner : IMigrationRunner
     {
+        readonly object _latestVersionLock;
+        MigrationVersion? _latestVersion;
+        
         public IMongoDatabase Database { get; }
         public IMigrationLocator MigrationLocator { get; }
         public IDatabaseMigrationStatus DatabaseStatus { get; }
@@ -31,14 +34,19 @@ namespace MongoMigrations.Core
             BsonSerializer.RegisterSerializer(typeof(MigrationVersion), new MigrationVersionSerializer());
         }
 
+        MigrationRunner()
+        {
+            _latestVersionLock = new object();
+        }
+        
         [JetBrains.Annotations.UsedImplicitly]
-        public MigrationRunner([NotNull] string connectionString, [NotNull] string database) : this(new MongoClient(connectionString).GetDatabase(database))
+        public MigrationRunner([NotNull] string connectionString, [NotNull] string database) : this(new MongoClient(connectionString).GetDatabase(database)) 
         {
             if (connectionString == null) throw new ArgumentNullException(nameof(connectionString));
             if (database == null) throw new ArgumentNullException(nameof(database));
         }
 
-        public MigrationRunner([NotNull] IMongoDatabase database, string collectionName = "DatabaseVersion", IMigrationLocator migrationLocator = null)
+        public MigrationRunner([NotNull] IMongoDatabase database, string collectionName = "DatabaseVersion", IMigrationLocator migrationLocator = null) : this()
         {
             Database = database ?? throw new ArgumentNullException(nameof(database));
             DatabaseStatus = new DatabaseMigrationStatus(this, collectionName);
@@ -52,9 +60,8 @@ namespace MongoMigrations.Core
                 return false;
             }
 
-            var currentMigrationVersion = MigrationLocator.GetLatestVersion();
             var lastMigration = DatabaseStatus.GetLastAppliedMigration(cancellationToken);
-            return lastMigration?.CompletedOn != null && lastMigration.Version.Equals(currentMigrationVersion);
+            return lastMigration?.CompletedOn != null && lastMigration.Version.Equals(GetLatestVersion());
         }
 
         public async Task<bool> IsDatabaseUpToDateAsync(CancellationToken cancellationToken = default)
@@ -64,15 +71,23 @@ namespace MongoMigrations.Core
                 return false;
             }
 
-            var currentMigrationVersion = await MigrationLocator.GetLatestVersionAsync(cancellationToken).ConfigureAwait(false);
             var lastMigration = await DatabaseStatus.GetLastAppliedMigrationAsync(cancellationToken).ConfigureAwait(false);
-
-            return lastMigration?.CompletedOn != null && lastMigration.Version.Equals(currentMigrationVersion);
+            return lastMigration?.CompletedOn != null && lastMigration.Version.Equals(GetLatestVersion());
         }
 
         public void UpdateToLatest(string serverName = null)
         {
             UpdateTo(MigrationLocator.GetLatestVersion(), serverName);
+        }
+
+        MigrationVersion GetLatestVersion()
+        {
+            MigrationVersion latestVersion;
+            lock (_latestVersionLock)
+            {
+                latestVersion = _latestVersion ??= MigrationLocator.GetLatestVersion();
+            }
+            return latestVersion;
         }
 
         void UpdateTo(MigrationVersion updateToVersion, string serverName)
