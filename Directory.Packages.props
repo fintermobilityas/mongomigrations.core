@@ -4,7 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="JetBrains.Annotations" Version="2022.3.1" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.4.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
     <PackageVersion Include="MongoDB.Driver" Version="2.19.0" />
     <PackageVersion Include="Moq" Version="4.18.4" />
     <PackageVersion Include="SourceLink.Embed.AllSourceFiles" Version="2.8.3" />
