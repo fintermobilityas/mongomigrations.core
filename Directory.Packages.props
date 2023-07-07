@@ -9,7 +9,7 @@
     <PackageVersion Include="Moq" Version="4.18.4" />
     <PackageVersion Include="SourceLink.Embed.AllSourceFiles" Version="2.8.3" />
     <PackageVersion Include="xunit" Version="2.4.2" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="2.4.5" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.0" />
     <PackageVersion Include="XunitXml.TestLogger" Version="3.0.78" />
   </ItemGroup>
 </Project>
