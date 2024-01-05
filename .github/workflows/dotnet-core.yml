@@ -70,7 +70,7 @@ jobs:
 
       - name: Upload nupkg
         if: success()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: nupkgs-${{ matrix.os }}
           path: ${{ github.workspace }}/nupkgs/**/*
@@ -83,7 +83,7 @@ jobs:
      steps:
 
       - name: Download nupkgs
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: nupkgs-ubuntu-latest
           path: ${{ github.workspace }}/nupkgs
