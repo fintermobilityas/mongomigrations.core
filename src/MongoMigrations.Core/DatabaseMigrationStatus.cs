@@ -48,11 +48,8 @@ namespace MongoMigrations.Core
                 .SortByDescending(v => v.Version);
         }
 
-        public void AddIndexes()
-        {
-            Collection.Indexes.CreateOne(new CreateIndexModel<AppliedMigration>(new IndexKeysDefinitionBuilder<AppliedMigration>().Descending(x => x.Version).Descending(x => x.CompletedOn)));
+        public void AddIndexes() => 
             Collection.Indexes.CreateOne(new CreateIndexModel<AppliedMigration>(new IndexKeysDefinitionBuilder<AppliedMigration>().Ascending(x => x.CompletedOn)));
-        }
 
         public List<AppliedMigration> GetMigrations()
         {
@@ -138,23 +135,10 @@ namespace MongoMigrations.Core
         
         IMongoCollection<AppliedMigration> WithReadPreference(ReadPreference readPreference = null) => 
             Collection.WithReadPreference(readPreference ?? _defaultReadPreference);
-
+        
         static PipelineDefinition<AppliedMigration, AppliedMigration> BuildIsDatebaseUpToDatePipelineDefinition(MigrationVersion latestVersion) =>
             new List<BsonDocument>
             {
-                new()
-                {
-                    {
-                        "$sort", new BsonDocument
-                        {
-                            { "_id", -1 }
-                        }
-                    }
-                },
-                new()
-                {
-                    { "$limit", 1 }
-                },
                 new()
                 {
                     {
