@@ -3,7 +3,6 @@ name: mongomigrations.core
 on: push
 
 env:
-  MONGODB_VERSION: 7.0.6
   GITVERSION_VERSION: 5.12.0
   DOTNET_SDK_VERSION: 8.0.303
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
@@ -44,6 +43,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
+        mongodb-version: [7.0, 8.0]
     steps:      
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,10 +51,10 @@ jobs:
           fetch-depth: 0
  
       - if: matrix.os == 'ubuntu-latest'
-        name: Setup mongodb v${{ env.MONGODB_VERSION }}
+        name: Setup mongodb v${{ matrix.MONGODB_VERSION }}
         uses: supercharge/mongodb-github-action@1.11.0
         with:
-          mongodb-version: ${{ env.MONGODB_VERSION }}
+          mongodb-version: ${{ matrix.MONGODB_VERSION }}
                                     
       - name: Setup dotnet ${{ env.DOTNET_SDK_VERSION }}
         uses: actions/setup-dotnet@v4.0.1
@@ -80,6 +80,8 @@ jobs:
      runs-on: ubuntu-latest
      name: Publish nuget package
      needs: [build]
+     permissions:
+      contents: write
      steps:
 
       - name: Download nupkgs
