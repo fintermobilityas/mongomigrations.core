@@ -62,16 +62,7 @@ jobs:
                 
       - name: Build & Run Tests
         shell: pwsh
-        timeout-minutes: 10
-        run: |
-          pwsh -c ".\${{ env.GITHUB_WORKSPACE }}\build.ps1" -Version ${{ env.BUILD_VERSION }} -RunTests -Nupkg
-
-      - name: Upload nupkg
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: nupkgs-${{ matrix.os }}
-          path: ${{ github.workspace }}/nupkgs/**/*
+        run: build.ps1 -Version ${{ env.BUILD_VERSION }} -RunTests
         
   publish:
      if: success()
@@ -82,12 +73,17 @@ jobs:
       BUILD_VERSION: ${{ needs.setup.outputs.BUILD_VERSION }}
      permissions:
       contents: write
-     steps:
-      - name: Download nupkgs
-        uses: actions/download-artifact@v4
+     steps:      
+      - name: Setup dotnet ${{ env.DOTNET_SDK_VERSION }}
+        if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master' 
+        uses: actions/setup-dotnet@v4.0.1
         with:
-          name: nupkgs-ubuntu-latest
-          path: ${{ github.workspace }}/nupkgs
+          dotnet-version: '${{ env.DOTNET_SDK_VERSION }}'
+
+      - name: Nupkg
+        if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master' 
+        shell: pwsh
+        run: build.ps1 -Version ${{ env.BUILD_VERSION }} -Nupkg
           
       - name: Push nuget packages
         if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master' 
