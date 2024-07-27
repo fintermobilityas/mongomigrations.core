@@ -30,9 +30,8 @@ jobs:
         shell: pwsh
         run: |
             dotnet tool update GitVersion.Tool --global --version ${{ env.GITVERSION_VERSION }}
-            $BUILD_VERSION = (dotnet gitversion /showVariable NugetVersionV2) | Out-String
-            $BUILD_VERSION = $BUILD_VERSION.Trim()
-            echo "BUILD_VERSION=$BUILD_VERSION" >> $env:GITHUB_ENV
+            $BUILD_VERSION = (dotnet gitversion /showVariable NugetVersionv2) | out-string
+            echo "BUILD_VERSION=$BUILD_VERSION" >> $env:GITHUB_OUTPUT
     
   build:
     name: Build
@@ -43,7 +42,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        mongodb-version: ['7.0', '8.0.0-rc13']
+        mongodb-version: ['7.0', '8.0.0-rc']
     steps:      
       - name: Checkout
         uses: actions/checkout@v4
@@ -66,7 +65,6 @@ jobs:
         timeout-minutes: 10
         run: |
           pwsh -c ".\${{ env.GITHUB_WORKSPACE }}\build.ps1" -Version ${{ env.BUILD_VERSION }} -RunTests -Nupkg
-          echo "${{ env.BUILD_VERSION }}" | Out-File ".\${{ env.GITHUB_WORKSPACE }}\nupkgs\nupkg_version.txt"
 
       - name: Upload nupkg
         if: success()
@@ -79,11 +77,12 @@ jobs:
      if: success()
      runs-on: ubuntu-latest
      name: Publish nuget package
-     needs: [build]
+     needs: [setup, build]
+     env:
+      BUILD_VERSION: ${{ needs.setup.outputs.BUILD_VERSION }}
      permissions:
       contents: write
      steps:
-
       - name: Download nupkgs
         uses: actions/download-artifact@v4
         with:
@@ -93,10 +92,7 @@ jobs:
       - name: Push nuget packages
         if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master' 
         shell: pwsh
-        run: | 
-          $nupkg_version = Get-Content ".\${{ env.GITHUB_WORKSPACE }}\nupkgs\nupkg_version.txt"
-          echo "NUPKG_VERSION=$nupkg_version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-                            
+        run: |                             
           $nupkgs = Get-ChildItem ".\${{ env.GITHUB_WORKSPACE }}\nupkgs" -Filter *.nupkg | Select-Object -ExpandProperty FullName          
           $nupkgs | ForEach-Object {
             dotnet nuget push $_ --source nuget.org --api-key ${{ secrets.NUGET_THIS_REPO_API_KEY }}  
@@ -111,7 +107,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ env.NUPKG_VERSION }}
-          release_name: Release v${{ env.NUPKG_VERSION }}
+          tag_name: v${{ env.BUILD_VERSION }}
+          release_name: Release v${{ env.BUILD_VERSION }}
           draft: true
           prerelease: false
