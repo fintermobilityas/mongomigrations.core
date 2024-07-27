@@ -51,10 +51,10 @@ jobs:
           fetch-depth: 0
  
       - if: matrix.os == 'ubuntu-latest'
-        name: Setup mongodb v${{ matrix.MONGODB_VERSION }}
+        name: Setup mongodb v${{ matrix.mongodb-version }}
         uses: supercharge/mongodb-github-action@1.11.0
         with:
-          mongodb-version: ${{ matrix.MONGODB_VERSION }}
+          mongodb-version: ${{ matrix.mongodb-version }}
                                     
       - name: Setup dotnet ${{ env.DOTNET_SDK_VERSION }}
         uses: actions/setup-dotnet@v4.0.1
