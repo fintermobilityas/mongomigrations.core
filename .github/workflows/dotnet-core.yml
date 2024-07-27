@@ -66,7 +66,7 @@ jobs:
           pwsh -command ".\${{ env.GITHUB_WORKSPACE }}\build.ps1" -Version ${{ env.BUILD_VERSION }} -RunTests
         
   publish:
-     if: success()
+     if: success() && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master')
      runs-on: ubuntu-latest
      name: Publish nuget package
      needs: [setup, build]
@@ -75,20 +75,22 @@ jobs:
      permissions:
       contents: write
      steps:      
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
       - name: Setup dotnet ${{ env.DOTNET_SDK_VERSION }}
-        if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master' 
         uses: actions/setup-dotnet@v4.0.1
         with:
           dotnet-version: '${{ env.DOTNET_SDK_VERSION }}'
 
-      - name: Nupkg
-        if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master' 
+      - name: Nupkg        
         shell: pwsh
         run: |
           pwsh -command ".\${{ env.GITHUB_WORKSPACE }}\build.ps1" -Version ${{ env.BUILD_VERSION }} -Nupkg
           
       - name: Push nuget packages
-        if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master' 
         shell: pwsh
         run: |                             
           $nupkgs = Get-ChildItem ".\${{ env.GITHUB_WORKSPACE }}\nupkgs" -Filter *.nupkg | Select-Object -ExpandProperty FullName          
