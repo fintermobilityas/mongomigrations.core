@@ -62,7 +62,8 @@ jobs:
                 
       - name: Build & Run Tests
         shell: pwsh
-        run: build.ps1 -Version ${{ env.BUILD_VERSION }} -RunTests
+        run: |
+          pwsh -command ".\${{ env.GITHUB_WORKSPACE }}\build.ps1" -Version ${{ env.BUILD_VERSION }} -RunTests
         
   publish:
      if: success()
@@ -83,7 +84,8 @@ jobs:
       - name: Nupkg
         if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master' 
         shell: pwsh
-        run: build.ps1 -Version ${{ env.BUILD_VERSION }} -Nupkg
+        run: |
+          pwsh -command ".\${{ env.GITHUB_WORKSPACE }}\build.ps1" -Version ${{ env.BUILD_VERSION }} -Nupkg
           
       - name: Push nuget packages
         if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master' 
