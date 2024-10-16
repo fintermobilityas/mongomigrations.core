@@ -1,6 +1,6 @@
 # 📖 About mongomigrations.core
 
-![dependabot](https://api.dependabot.com/badges/status?host=github&repo=fintermobilityas/mongomigrations.core) ![License](https://img.shields.io/github/license/fintermobilityas/mongomigrations.core.svg)
+![License](https://img.shields.io/github/license/fintermobilityas/mongomigrations.core.svg)
 
 [![NuGet](https://img.shields.io/nuget/v/mongomigrations.core.svg)](https://www.nuget.org/packages/mongomigrations.core) [![downloads](https://img.shields.io/nuget/dt/mongomigrations.core)](https://www.nuget.org/packages/mongomigrations.core) ![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/mongomigrations.core) ![Size](https://img.shields.io/github/repo-size/fintermobilityas/mongomigrations.core.svg) 
 
