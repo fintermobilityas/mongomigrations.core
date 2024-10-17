@@ -17,7 +17,11 @@ namespace MongoMigrations.Core.Extensions
         {
             if (updateDefinition == null) throw new ArgumentNullException(nameof(updateDefinition));
             var documentSerializer = BsonSerializer.SerializerRegistry.GetSerializer<TDocument>();
-            var renderedFilter = updateDefinition.Render(documentSerializer, BsonSerializer.SerializerRegistry);
+            var renderedFilter = updateDefinition.Render(new RenderArgs<TDocument> 
+            {
+                SerializerRegistry = BsonSerializer.SerializerRegistry,
+                DocumentSerializer = documentSerializer
+            });
             return renderedFilter.ToString();
         }
 
@@ -25,7 +29,11 @@ namespace MongoMigrations.Core.Extensions
         {
             if (updateDefinition == null) throw new ArgumentNullException(nameof(updateDefinition));
             var documentSerializer = BsonSerializer.SerializerRegistry.GetSerializer<TDocument>();
-            var renderedFilter = updateDefinition.Render(documentSerializer, BsonSerializer.SerializerRegistry);
+            var renderedFilter = updateDefinition.Render(new RenderArgs<TDocument> 
+            {
+                SerializerRegistry = BsonSerializer.SerializerRegistry,
+                DocumentSerializer = documentSerializer
+            });
             return renderedFilter.AsBsonDocument;
         }
 
@@ -33,7 +41,11 @@ namespace MongoMigrations.Core.Extensions
         {
             if (filterDefinition == null) throw new ArgumentNullException(nameof(filterDefinition));
             var documentSerializer = BsonSerializer.SerializerRegistry.GetSerializer<TDocument>();
-            var renderedFilter = filterDefinition.Render(documentSerializer, BsonSerializer.SerializerRegistry);
+            var renderedFilter = filterDefinition.Render(new RenderArgs<TDocument> 
+            {
+                SerializerRegistry = BsonSerializer.SerializerRegistry,
+                DocumentSerializer = documentSerializer
+            });
             return renderedFilter;
         }
 
