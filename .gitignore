@@ -4,3 +4,5 @@ obj/
 nupkgs/
 build/
 *.orig
+
+.idea/.idea.MongoMigrations.Core/.idea/
