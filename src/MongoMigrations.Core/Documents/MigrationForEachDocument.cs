@@ -9,14 +9,20 @@ using MongoMigrations.Core.WriteModels;
 namespace MongoMigrations.Core.Documents;
 
 [DebuggerDisplay("Name: {Name}. Index: {Index}")]
-public sealed class MigrationForEachDocument
+public sealed class MigrationForEachDocument(
+    [NotNull] FilterDefinition<BsonDocument> parentFilterDefinition,
+    [NotNull] string name,
+    IEnumerable<BsonDocument> bsonDocuments,
+    int index,
+    [NotNull] BsonDocument bsonDocument)
 {
-    readonly FilterDefinition<BsonDocument> _parentFilterDefinition;
+    readonly FilterDefinition<BsonDocument> _parentFilterDefinition = parentFilterDefinition ?? throw new ArgumentNullException(nameof(parentFilterDefinition));
 
-    [UsedImplicitly] public string Name { get; }
-    [UsedImplicitly] public IEnumerable<BsonDocument> BsonDocuments { get; }
-    [UsedImplicitly] public int Index { get; }
-    [UsedImplicitly] public BsonDocument BsonDocument { get; }
+    [UsedImplicitly] public string Name { get; } = name ?? throw new ArgumentNullException(nameof(name));
+    [UsedImplicitly] public IEnumerable<BsonDocument> BsonDocuments { get; } = bsonDocuments ?? throw new ArgumentNullException(nameof(bsonDocuments));
+    [UsedImplicitly] public int Index { get; } = index < 0 ? throw new ArgumentOutOfRangeException(nameof(index)) : index;
+    [UsedImplicitly] public BsonDocument BsonDocument { get; } = bsonDocument ?? throw new ArgumentNullException(nameof(bsonDocument));
+
     [UsedImplicitly] public FilterDefinition<BsonDocument> ByDocumentIdFilter()
     {
         if (!BsonDocument.TryGetElement("_id", out _))
@@ -28,16 +34,6 @@ public sealed class MigrationForEachDocument
     [UsedImplicitly]
     public BsonValue this[string name] => BsonDocument[name];
     [UsedImplicitly] public string Field(string field) => $"{Name}.{Index}.{field}";
-
-    public MigrationForEachDocument([NotNull] FilterDefinition<BsonDocument> parentFilterDefinition, [NotNull] string name,
-        IEnumerable<BsonDocument> bsonDocuments, int index, [NotNull] BsonDocument bsonDocument)
-    {
-        _parentFilterDefinition = parentFilterDefinition ?? throw new ArgumentNullException(nameof(parentFilterDefinition));
-        BsonDocuments = bsonDocuments ?? throw new ArgumentNullException(nameof(bsonDocuments));
-        Name = name ?? throw new ArgumentNullException(nameof(name));
-        Index = index < 0 ? throw new ArgumentOutOfRangeException(nameof(index)) : index;
-        BsonDocument = bsonDocument ?? throw new ArgumentNullException(nameof(bsonDocument));
-    }
 
     [UsedImplicitly]
     public IWriteModel Update([NotNull] FilterDefinition<BsonDocument> filterDefinition, [NotNull] UpdateDefinition<BsonDocument> updateDefinition)

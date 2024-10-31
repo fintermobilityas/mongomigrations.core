@@ -6,12 +6,7 @@ namespace MongoMigrations.Core.Tests;
 
 public class MigrationLocatorTests
 {
-    readonly MigrationLocator _migrationLocator;
-
-    public MigrationLocatorTests()
-    {
-        _migrationLocator = new MigrationLocator();
-    }
+    readonly MigrationLocator _migrationLocator = new();
 
     [Fact]
     public void TestGetAllMigrations()
@@ -51,12 +46,8 @@ public class MigrationLocatorTests
 }
 
 [SuppressMessage("ReSharper", "UnusedMember.Global")]
-class TestMigration01 : Migration
+class TestMigration01() : Migration(1)
 {
-    public TestMigration01() : base(1)
-    {
-    }
-
     public override void Update()
     {
         throw new System.NotImplementedException();

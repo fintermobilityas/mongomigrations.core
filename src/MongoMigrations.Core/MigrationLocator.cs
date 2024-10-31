@@ -17,18 +17,11 @@ public interface IMigrationLocator
     IEnumerable<IMigration> GetMigrationsAfter([NotNull] AppliedMigration appliedMigration);
 }
 
-public sealed class MigrationLocator : IMigrationLocator
+public sealed class MigrationLocator() : IMigrationLocator
 {
-    readonly List<Assembly> _assemblies;
-    readonly Dictionary<string, List<IMigration>> _migrationsDictionary;
-    readonly object _syncRoot;
-
-    public MigrationLocator()
-    {
-        _assemblies = new List<Assembly>();
-        _migrationsDictionary = new Dictionary<string, List<IMigration>>();
-        _syncRoot = new object();
-    }
+    readonly List<Assembly> _assemblies = new();
+    readonly Dictionary<string, List<IMigration>> _migrationsDictionary = new();
+    readonly object _syncRoot = new();
 
     internal MigrationLocator([NotNull] Assembly assembly, [NotNull] List<IMigration> migrations) : this()
     {

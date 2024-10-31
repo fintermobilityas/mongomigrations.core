@@ -13,26 +13,22 @@ using MongoMigrations.Core.WriteModels;
 namespace MongoMigrations.Core.Documents;
 
 [DebuggerDisplay("Name: {" + nameof(_name) + "}")]
-public sealed class MigrationForEachDocuments : IEnumerable<IWriteModel>
+public sealed class MigrationForEachDocuments(
+    [NotNull] FilterDefinition<BsonDocument> parentFilterDefinition,
+    [NotNull] string name,
+    [NotNull] BsonArray bsonArray,
+    [NotNull] Func<MigrationForEachDocument, IWriteModel> enumeratorFunc)
+    : IEnumerable<IWriteModel>
 {
-    readonly FilterDefinition<BsonDocument> _parentFilterDefinition;
+    readonly FilterDefinition<BsonDocument> _parentFilterDefinition = parentFilterDefinition ?? throw new ArgumentNullException(nameof(parentFilterDefinition));
 
-    readonly string _name;
-    readonly BsonArray _bsonArray;
-    readonly Func<MigrationForEachDocument, IWriteModel> _enumeratorFunc;
-    readonly List<IWriteModel> _writeModels;
+    readonly string _name = name;
+    readonly BsonArray _bsonArray = bsonArray;
+    readonly Func<MigrationForEachDocument, IWriteModel> _enumeratorFunc = enumeratorFunc;
+    readonly List<IWriteModel> _writeModels = new();
 
     [UsedImplicitly] public List<string> JsonDocuments => BsonDocuments.Select(x => x?.ToJson(new JsonWriterSettings { OutputMode = JsonOutputMode.CanonicalExtendedJson })).ToList();
     [UsedImplicitly] public List<BsonDocument> BsonDocuments => this.Select(x => x.Model?.ToWriteModelBsonDocument()).ToList();
-
-    public MigrationForEachDocuments([NotNull] FilterDefinition<BsonDocument> parentFilterDefinition, [NotNull] string name, [NotNull] BsonArray bsonArray, [NotNull] Func<MigrationForEachDocument, IWriteModel> enumeratorFunc)
-    {
-        _parentFilterDefinition = parentFilterDefinition ?? throw new ArgumentNullException(nameof(parentFilterDefinition));
-        _name = name;
-        _bsonArray = bsonArray;
-        _enumeratorFunc = enumeratorFunc;
-        _writeModels = new List<IWriteModel>();
-    }
 
     public IEnumerator<IWriteModel> GetEnumerator()
     {

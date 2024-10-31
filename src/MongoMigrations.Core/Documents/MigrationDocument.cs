@@ -13,11 +13,11 @@ using MongoMigrations.Core.WriteModels;
 namespace MongoMigrations.Core.Documents;
 
 [DebuggerDisplay("Write models: {" + nameof(WriteModelsCount) + "}")]
-public sealed class MigrationDocument : IEnumerable<IWriteModel>
+public sealed class MigrationDocument([NotNull] BsonDocument document) : IEnumerable<IWriteModel>
 {
-    readonly List<IWriteModel> _writeModels;
+    readonly List<IWriteModel> _writeModels = new();
 
-    [UsedImplicitly] public BsonDocument BsonDocument { get; }
+    [UsedImplicitly] public BsonDocument BsonDocument { get; } = document ?? throw new ArgumentNullException(nameof(document));
     [UsedImplicitly] public BsonValue this[string name] => BsonDocument[name];
     [UsedImplicitly] public List<string> WriteModelsJsonDebug => WriteModelsBsonDebug.Select(x => x?.ToJson(new JsonWriterSettings { OutputMode = JsonOutputMode.CanonicalExtendedJson })).ToList();
     [UsedImplicitly] public List<BsonDocument> WriteModelsBsonDebug => this.Select(x => x.Model?.ToWriteModelBsonDocument()).ToList();
@@ -29,12 +29,6 @@ public sealed class MigrationDocument : IEnumerable<IWriteModel>
             throw new Exception("A default _id property does not exist in current document.");
         }
         return Builders<BsonDocument>.Filter.Eq("_id", this["_id"]);
-    }
-
-    public MigrationDocument([NotNull] BsonDocument document)
-    {
-        _writeModels = new List<IWriteModel>();
-        BsonDocument = document ?? throw new ArgumentNullException(nameof(document));
     }
 
     [UsedImplicitly]

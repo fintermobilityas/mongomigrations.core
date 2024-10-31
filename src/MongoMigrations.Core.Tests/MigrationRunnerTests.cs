@@ -12,19 +12,12 @@ using Xunit;
 
 namespace MongoMigrations.Core.Tests;
 
-public class MigrationRunnerTests : IClassFixture<DatabaseFixture>
+public class MigrationRunnerTests(DatabaseFixture databaseFixture) : IClassFixture<DatabaseFixture>
 {
-    readonly DatabaseFixture _databaseFixture;
-
-    public MigrationRunnerTests(DatabaseFixture databaseFixture)
-    {
-        _databaseFixture = databaseFixture;
-    }
-
     [Fact]
     public void TestAddIndexes()
     {
-        using var fixture = new MigrationRunnerFixture(_databaseFixture);
+        using var fixture = new MigrationRunnerFixture(databaseFixture);
 
         fixture.MigrationRunner.DatabaseStatus.AddIndexes();
         fixture.MigrationRunner.DatabaseStatus.AddIndexes();
@@ -38,7 +31,7 @@ public class MigrationRunnerTests : IClassFixture<DatabaseFixture>
     [Fact]
     public void TestGetMigrations_Empty()
     {
-        using var fixture = new MigrationRunnerFixture(_databaseFixture);
+        using var fixture = new MigrationRunnerFixture(databaseFixture);
 
         Assert.Empty(fixture.MigrationRunner.DatabaseStatus.GetMigrations());
     }
@@ -46,7 +39,7 @@ public class MigrationRunnerTests : IClassFixture<DatabaseFixture>
     [Fact]
     public void TestGetMigrations_IsSortedByOldestVersion()
     {
-        using var fixture = new MigrationRunnerFixture(_databaseFixture);
+        using var fixture = new MigrationRunnerFixture(databaseFixture);
 
         var migration1Mock = new Mock<IMigration>();
         migration1Mock.SetupGet(x => x.Version).Returns(new MigrationVersion(1));
@@ -67,7 +60,7 @@ public class MigrationRunnerTests : IClassFixture<DatabaseFixture>
     [Fact]
     public void TestGetLastAppliedMigration()
     {
-        using var fixture = new MigrationRunnerFixture(_databaseFixture);
+        using var fixture = new MigrationRunnerFixture(databaseFixture);
 
         var migration1Mock = new Mock<IMigration>();
         migration1Mock.SetupGet(x => x.Version).Returns(new MigrationVersion(1));
@@ -86,7 +79,7 @@ public class MigrationRunnerTests : IClassFixture<DatabaseFixture>
     [Fact]
     public async Task TestGetLastAppliedMigrationAsync()
     {
-        using var fixture = new MigrationRunnerFixture(_databaseFixture);
+        using var fixture = new MigrationRunnerFixture(databaseFixture);
 
         var migration1Mock = new Mock<IMigration>();
         migration1Mock.SetupGet(x => x.Version).Returns(new MigrationVersion(1));
@@ -108,11 +101,11 @@ public class MigrationRunnerTests : IClassFixture<DatabaseFixture>
     {
         var migration1Mock = new Mock<IMigration>();
         migration1Mock.SetupGet(x => x.Version).Returns(new MigrationVersion(1));
-        migration1Mock.SetupGet(x => x.Database).Returns(_databaseFixture.Database);
+        migration1Mock.SetupGet(x => x.Database).Returns(databaseFixture.Database);
 
         var migration2Mock = new Mock<IMigration>();
         migration2Mock.SetupGet(x => x.Version).Returns(new MigrationVersion(2));
-        migration2Mock.SetupGet(x => x.Database).Returns(_databaseFixture.Database);
+        migration2Mock.SetupGet(x => x.Database).Returns(databaseFixture.Database);
 
         var migrationLocator = new MigrationLocator(typeof(MigrationLocatorTests).Assembly, new List<IMigration>
         {
@@ -120,7 +113,7 @@ public class MigrationRunnerTests : IClassFixture<DatabaseFixture>
             migration2Mock.Object
         });
 
-        using var fixture = new MigrationRunnerFixture(_databaseFixture, migrationLocator);
+        using var fixture = new MigrationRunnerFixture(databaseFixture, migrationLocator);
         fixture.Collection.InsertOne(new AppliedMigration(migration1Mock.Object) { CompletedOn = DateTime.Now });
 
         var migrations = fixture.MigrationRunner.DatabaseStatus.GetMigrations();
@@ -144,11 +137,11 @@ public class MigrationRunnerTests : IClassFixture<DatabaseFixture>
     {
         var migration1Mock = new Mock<IMigration>();
         migration1Mock.SetupGet(x => x.Version).Returns(new MigrationVersion(1));
-        migration1Mock.SetupGet(x => x.Database).Returns(_databaseFixture.Database);
+        migration1Mock.SetupGet(x => x.Database).Returns(databaseFixture.Database);
 
         var migration2Mock = new Mock<IMigration>();
         migration2Mock.SetupGet(x => x.Version).Returns(new MigrationVersion(2));
-        migration2Mock.SetupGet(x => x.Database).Returns(_databaseFixture.Database);
+        migration2Mock.SetupGet(x => x.Database).Returns(databaseFixture.Database);
 
         var migrationLocator = new MigrationLocator(typeof(MigrationLocatorTests).Assembly, new List<IMigration>
         {
@@ -156,7 +149,7 @@ public class MigrationRunnerTests : IClassFixture<DatabaseFixture>
             migration2Mock.Object
         });
 
-        using var fixture = new MigrationRunnerFixture(_databaseFixture, migrationLocator);
+        using var fixture = new MigrationRunnerFixture(databaseFixture, migrationLocator);
         fixture.Collection.InsertOne(new AppliedMigration(migration1Mock.Object) { CompletedOn = DateTime.Now });
 
         var migrations = fixture.MigrationRunner.DatabaseStatus.GetMigrations();
@@ -176,11 +169,11 @@ public class MigrationRunnerTests : IClassFixture<DatabaseFixture>
     {
         var migration1Mock = new Mock<IMigration>();
         migration1Mock.SetupGet(x => x.Version).Returns(new MigrationVersion(1));
-        migration1Mock.SetupGet(x => x.Database).Returns(_databaseFixture.Database);
+        migration1Mock.SetupGet(x => x.Database).Returns(databaseFixture.Database);
 
         var migration2Mock = new Mock<IMigration>();
         migration2Mock.SetupGet(x => x.Version).Returns(new MigrationVersion(2));
-        migration2Mock.SetupGet(x => x.Database).Returns(_databaseFixture.Database);
+        migration2Mock.SetupGet(x => x.Database).Returns(databaseFixture.Database);
 
         var migrationLocator = new MigrationLocator(typeof(MigrationLocatorTests).Assembly, new List<IMigration>
         {
@@ -188,7 +181,7 @@ public class MigrationRunnerTests : IClassFixture<DatabaseFixture>
             migration2Mock.Object
         });
 
-        using var fixture = new MigrationRunnerFixture(_databaseFixture, migrationLocator);
+        using var fixture = new MigrationRunnerFixture(databaseFixture, migrationLocator);
         fixture.Collection.InsertOne(new AppliedMigration(migration1Mock.Object) { CompletedOn = DateTime.Now });
         fixture.Collection.InsertOne(new AppliedMigration(migration2Mock.Object) { FailedOn = DateTime.Now });
 
@@ -214,7 +207,7 @@ public class MigrationRunnerTests : IClassFixture<DatabaseFixture>
     {
         var migration1Mock = new Mock<IMigration>();
         migration1Mock.SetupGet(x => x.Version).Returns(new MigrationVersion(1));
-        migration1Mock.SetupGet(x => x.Database).Returns(_databaseFixture.Database);
+        migration1Mock.SetupGet(x => x.Database).Returns(databaseFixture.Database);
         migration1Mock.Setup(x => x.Update()).Throws(new Exception("YOLO"));
 
         var migrationLocator = new MigrationLocator(typeof(MigrationLocatorTests).Assembly, new List<IMigration>
@@ -222,7 +215,7 @@ public class MigrationRunnerTests : IClassFixture<DatabaseFixture>
             migration1Mock.Object
         });
 
-        using var fixture = new MigrationRunnerFixture(_databaseFixture, migrationLocator);
+        using var fixture = new MigrationRunnerFixture(databaseFixture, migrationLocator);
 
         var ex = Assert.Throws<MigrationException>(() => fixture.MigrationRunner.UpdateToLatest());
         Assert.StartsWith("{ Message = Migration failed to be applied: YOLO", ex.Message);
@@ -243,11 +236,11 @@ public class MigrationRunnerTests : IClassFixture<DatabaseFixture>
     {
         var migration1Mock = new Mock<IMigration>();
         migration1Mock.SetupGet(x => x.Version).Returns(new MigrationVersion(1));
-        migration1Mock.SetupGet(x => x.Database).Returns(_databaseFixture.Database);
+        migration1Mock.SetupGet(x => x.Database).Returns(databaseFixture.Database);
 
         var migrationLocator = new MigrationLocator(typeof(MigrationLocatorTests).Assembly, new List<IMigration> { migration1Mock.Object });
 
-        using var fixture = new MigrationRunnerFixture(_databaseFixture, migrationLocator);
+        using var fixture = new MigrationRunnerFixture(databaseFixture, migrationLocator);
 
         var migrations = fixture.MigrationRunner.DatabaseStatus.GetMigrations();
         Assert.Empty(migrations);
@@ -271,14 +264,14 @@ public class MigrationRunnerTests : IClassFixture<DatabaseFixture>
         {
             var mock = new Mock<IMigration>();
             mock.SetupGet(x => x.Version).Returns(new MigrationVersion(version));
-            mock.SetupGet(x => x.Database).Returns(_databaseFixture.Database);
+            mock.SetupGet(x => x.Database).Returns(databaseFixture.Database);
             mock.Setup(x => x.Update()).Callback(() => Thread.Sleep(random.Next(100, 300)));
             return mock;
         }).ToList();
 
         var migrationLocator = new MigrationLocator(typeof(MigrationLocatorTests).Assembly, mocks.Select(x => x.Object).ToList());
 
-        using var fixture = new MigrationRunnerFixture(_databaseFixture, migrationLocator);
+        using var fixture = new MigrationRunnerFixture(databaseFixture, migrationLocator);
 
         var concurrentMigrationExceptionsThrown = new ConcurrentQueue<ConcurrentMigrationException>();
         long migrationCompleted = 0;

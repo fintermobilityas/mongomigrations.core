@@ -10,12 +10,7 @@ public interface IWriteModel
     WriteModel<BsonDocument> Model { get; }
 }
 
-public class WriteModel : IWriteModel
+public class WriteModel([NotNull] WriteModel<BsonDocument> model) : IWriteModel
 {
-    public WriteModel<BsonDocument> Model { get; }
-
-    public WriteModel([NotNull] WriteModel<BsonDocument> model)
-    {
-        Model = model ?? throw new ArgumentNullException(nameof(model));
-    }
+    public WriteModel<BsonDocument> Model { get; } = model ?? throw new ArgumentNullException(nameof(model));
 }
