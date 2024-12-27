@@ -56,7 +56,7 @@ jobs:
           mongodb-version: ${{ matrix.mongodb-version }}
                                     
       - name: Setup dotnet ${{ env.DOTNET_SDK_VERSION }}
-        uses: actions/setup-dotnet@v4.1.0
+        uses: actions/setup-dotnet@v4.2.0
         with:
           dotnet-version: '${{ env.DOTNET_SDK_VERSION }}'
                 
@@ -81,7 +81,7 @@ jobs:
           fetch-depth: 0
       
       - name: Setup dotnet ${{ env.DOTNET_SDK_VERSION }}
-        uses: actions/setup-dotnet@v4.1.0
+        uses: actions/setup-dotnet@v4.2.0
         with:
           dotnet-version: '${{ env.DOTNET_SDK_VERSION }}'
 
