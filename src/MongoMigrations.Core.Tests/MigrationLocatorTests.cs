@@ -2,65 +2,54 @@
 using System.Threading.Tasks;
 using Xunit;
 
-namespace MongoMigrations.Core.Tests
+namespace MongoMigrations.Core.Tests;
+
+public class MigrationLocatorTests
 {
-    public class MigrationLocatorTests
+    readonly MigrationLocator _migrationLocator = new();
+
+    [Fact]
+    public void TestGetAllMigrations()
     {
-        readonly MigrationLocator _migrationLocator;
+        AddMigrations();
 
-        public MigrationLocatorTests()
-        {
-            _migrationLocator = new MigrationLocator();
-        }
+        var migrations = _migrationLocator.GetAllMigrations();
+        Assert.Single(migrations);
 
-        [Fact]
-        public void TestGetAllMigrations()
-        {
-            AddMigrations();
-
-            var migrations = _migrationLocator.GetAllMigrations();
-            Assert.Single(migrations);
-
-            var migrationsIsCached = _migrationLocator.GetAllMigrations();
-            Assert.Single(migrationsIsCached);
-        }
-
-        [Fact]
-        public void TestGetLatestVersion()
-        {
-            AddMigrations();
-
-            var latestVersion = _migrationLocator.GetLatestVersion();
-            Assert.Equal(new MigrationVersion(1), latestVersion);
-            Assert.Equal(1, latestVersion.Version);
-        }
-
-        [Fact]
-        public void TestGetLatestVersion_No_Prior_Migrations()
-        {
-            Assert.Empty(_migrationLocator.GetAllMigrations());
-
-            var latestVersion = _migrationLocator.GetLatestVersion();
-            Assert.Equal(MigrationVersion.Default, latestVersion);
-        }
-
-        void AddMigrations()
-        {
-            _migrationLocator.LookForMigrationsInAssembly(typeof(MigrationLocatorTests).Assembly);
-        }
+        var migrationsIsCached = _migrationLocator.GetAllMigrations();
+        Assert.Single(migrationsIsCached);
     }
 
-    [SuppressMessage("ReSharper", "UnusedMember.Global")]
-    class TestMigration01 : Migration
+    [Fact]
+    public void TestGetLatestVersion()
     {
-        public TestMigration01() : base(1)
-        {
-        }
+        AddMigrations();
 
-        public override void Update()
-        {
-            throw new System.NotImplementedException();
-        }
+        var latestVersion = _migrationLocator.GetLatestVersion();
+        Assert.Equal(new MigrationVersion(1), latestVersion);
+        Assert.Equal(1, latestVersion.Version);
     }
 
+    [Fact]
+    public void TestGetLatestVersion_No_Prior_Migrations()
+    {
+        Assert.Empty(_migrationLocator.GetAllMigrations());
+
+        var latestVersion = _migrationLocator.GetLatestVersion();
+        Assert.Equal(MigrationVersion.Default, latestVersion);
+    }
+
+    void AddMigrations()
+    {
+        _migrationLocator.LookForMigrationsInAssembly(typeof(MigrationLocatorTests).Assembly);
+    }
+}
+
+[SuppressMessage("ReSharper", "UnusedMember.Global")]
+class TestMigration01() : Migration(1)
+{
+    public override void Update()
+    {
+        throw new System.NotImplementedException();
+    }
 }

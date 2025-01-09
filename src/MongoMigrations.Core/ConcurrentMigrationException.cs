@@ -1,14 +1,9 @@
 ﻿using System;
 
-namespace MongoMigrations.Core
-{
-    public class ConcurrentMigrationException : MigrationException
-    {
-        public MigrationVersion Version { get; }
+namespace MongoMigrations.Core;
 
-        public ConcurrentMigrationException(MigrationVersion version, Exception innerException) : base($"Migration is already in progress. Version: {version}", innerException)
-        {
-            Version = version;
-        }
-    }
+public class ConcurrentMigrationException(MigrationVersion version, Exception innerException)
+    : MigrationException($"Migration is already in progress. Version: {version}", innerException)
+{
+    public MigrationVersion Version { get; } = version;
 }

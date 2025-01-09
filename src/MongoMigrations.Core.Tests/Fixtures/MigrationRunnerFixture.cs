@@ -1,27 +1,26 @@
 ﻿using System;
 using MongoDB.Driver;
 
-namespace MongoMigrations.Core.Tests.Fixtures
+namespace MongoMigrations.Core.Tests.Fixtures;
+
+public sealed class MigrationRunnerFixture : IDisposable
 {
-    public sealed class MigrationRunnerFixture : IDisposable
+    readonly DatabaseFixture _databaseFixture;
+    readonly string _collectionName;
+
+    public IMigrationRunner MigrationRunner { get; }
+    public IMongoCollection<AppliedMigration> Collection => MigrationRunner.DatabaseStatus.Collection;
+
+    public MigrationRunnerFixture(DatabaseFixture databaseFixture, IMigrationLocator migrationLocator = null)
     {
-        readonly DatabaseFixture _databaseFixture;
-        readonly string _collectionName;
+        _databaseFixture = databaseFixture;
+        _collectionName = Guid.NewGuid().ToString();
 
-        public IMigrationRunner MigrationRunner { get; }
-        public IMongoCollection<AppliedMigration> Collection => MigrationRunner.DatabaseStatus.Collection;
+        MigrationRunner = new MigrationRunner(databaseFixture.Database, _collectionName, migrationLocator);
+    }
 
-        public MigrationRunnerFixture(DatabaseFixture databaseFixture, IMigrationLocator migrationLocator = null)
-        {
-            _databaseFixture = databaseFixture;
-            _collectionName = Guid.NewGuid().ToString();
-
-            MigrationRunner = new MigrationRunner(databaseFixture.Database, _collectionName, migrationLocator);
-        }
-
-        public void Dispose()
-        {
-            _databaseFixture.Database.DropCollection(_collectionName);
-        }
+    public void Dispose()
+    {
+        _databaseFixture.Database.DropCollection(_collectionName);
     }
 }

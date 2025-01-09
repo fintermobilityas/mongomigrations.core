@@ -4,116 +4,108 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 
-namespace MongoMigrations.Core
+namespace MongoMigrations.Core;
+
+[SuppressMessage("ReSharper", "UnusedMember.Global")]
+[SuppressMessage("ReSharper", "UnusedMemberInSuper.Global")]
+public interface IMigrationLocator
 {
-    [SuppressMessage("ReSharper", "UnusedMember.Global")]
-    [SuppressMessage("ReSharper", "UnusedMemberInSuper.Global")]
-    public interface IMigrationLocator
+    void LookForMigrationsInAssemblyOfType<T>();
+    void LookForMigrationsInAssembly([NotNull] Assembly assembly);
+    IEnumerable<IMigration> GetAllMigrations();
+    MigrationVersion GetLatestVersion();
+    IEnumerable<IMigration> GetMigrationsAfter([NotNull] AppliedMigration appliedMigration);
+}
+
+public sealed class MigrationLocator() : IMigrationLocator
+{
+    readonly List<Assembly> _assemblies = new();
+    readonly Dictionary<string, List<IMigration>> _migrationsDictionary = new();
+    readonly object _syncRoot = new();
+
+    internal MigrationLocator([NotNull] Assembly assembly, [NotNull] List<IMigration> migrations) : this()
     {
-        void LookForMigrationsInAssemblyOfType<T>();
-        void LookForMigrationsInAssembly([NotNull] Assembly assembly);
-        IEnumerable<IMigration> GetAllMigrations();
-        MigrationVersion GetLatestVersion();
-        IEnumerable<IMigration> GetMigrationsAfter([NotNull] AppliedMigration appliedMigration);
+        if (assembly == null) throw new ArgumentNullException(nameof(assembly));
+        _assemblies.Add(assembly);
+        _migrationsDictionary[assembly.FullName] = migrations ?? throw new ArgumentNullException(nameof(migrations));
     }
 
-    public sealed class MigrationLocator : IMigrationLocator
+    [JetBrains.Annotations.UsedImplicitly]
+    public void LookForMigrationsInAssemblyOfType<T>()
     {
-        readonly List<Assembly> _assemblies;
-        readonly Dictionary<string, List<IMigration>> _migrationsDictionary;
-        readonly object _syncRoot;
+        var assembly = typeof(T).Assembly;
+        LookForMigrationsInAssembly(assembly);
+    }
 
-        public MigrationLocator()
+    public void LookForMigrationsInAssembly(Assembly assembly)
+    {
+        if (assembly == null) throw new ArgumentNullException(nameof(assembly));
+
+        lock (_syncRoot)
         {
-            _assemblies = new List<Assembly>();
-            _migrationsDictionary = new Dictionary<string, List<IMigration>>();
-            _syncRoot = new object();
+            if (!_assemblies.Contains(assembly))
+            {
+                _assemblies.Add(assembly);
+            }
         }
+    }
 
-        internal MigrationLocator([NotNull] Assembly assembly, [NotNull] List<IMigration> migrations) : this()
-        {
-            if (assembly == null) throw new ArgumentNullException(nameof(assembly));
-            _assemblies.Add(assembly);
-            _migrationsDictionary[assembly.FullName] = migrations ?? throw new ArgumentNullException(nameof(migrations));
-        }
-
-        [JetBrains.Annotations.UsedImplicitly]
-        public void LookForMigrationsInAssemblyOfType<T>()
-        {
-            var assembly = typeof(T).Assembly;
-            LookForMigrationsInAssembly(assembly);
-        }
-
-        public void LookForMigrationsInAssembly(Assembly assembly)
+    public IEnumerable<IMigration> GetAllMigrations()
+    {
+        static List<IMigration> FindMigrations(Assembly assembly)
         {
             if (assembly == null) throw new ArgumentNullException(nameof(assembly));
 
-            lock (_syncRoot)
+            try
             {
-                if (!_assemblies.Contains(assembly))
-                {
-                    _assemblies.Add(assembly);
-                }
+                return assembly.GetTypes()
+                    .Where(t => typeof(Migration).IsAssignableFrom(t) && !t.IsAbstract)
+                    .Select(Activator.CreateInstance)
+                    .OfType<Migration>()
+                    .OrderBy(x => x.Version)
+                    .Cast<IMigration>()
+                    .ToList();
+            }
+            catch (Exception exception)
+            {
+                throw new MigrationException($"Cannot load migrations from assembly: {assembly.FullName}", exception);
             }
         }
 
-        public IEnumerable<IMigration> GetAllMigrations()
+        lock (_syncRoot)
         {
-            static List<IMigration> FindMigrations(Assembly assembly)
+            foreach (var assembly in _assemblies)
             {
-                if (assembly == null) throw new ArgumentNullException(nameof(assembly));
-
-                try
+                if (!_migrationsDictionary.ContainsKey(assembly.FullName))
                 {
-                    return assembly.GetTypes()
-                        .Where(t => typeof(Migration).IsAssignableFrom(t) && !t.IsAbstract)
-                        .Select(Activator.CreateInstance)
-                        .OfType<Migration>()
-                        .OrderBy(x => x.Version)
-                        .Cast<IMigration>()
-                        .ToList();
+                    _migrationsDictionary[assembly.FullName] = FindMigrations(assembly);
                 }
-                catch (Exception exception)
-                {
-                    throw new MigrationException($"Cannot load migrations from assembly: {assembly.FullName}", exception);
-                }
-            }
 
-            lock (_syncRoot)
-            {
-                foreach (var assembly in _assemblies)
+                foreach (var migration in _migrationsDictionary[assembly.FullName])
                 {
-                    if (!_migrationsDictionary.ContainsKey(assembly.FullName))
-                    {
-                        _migrationsDictionary[assembly.FullName] = FindMigrations(assembly);
-                    }
-
-                    foreach (var migration in _migrationsDictionary[assembly.FullName])
-                    {
-                        yield return migration;
-                    }
+                    yield return migration;
                 }
             }
         }
+    }
 
-        public MigrationVersion GetLatestVersion()
+    public MigrationVersion GetLatestVersion()
+    {
+        var migrations = GetAllMigrations().ToList();
+
+        return !migrations.Any() ? MigrationVersion.Default : migrations.Max(m => m.Version);
+    }
+
+    public IEnumerable<IMigration> GetMigrationsAfter(AppliedMigration appliedMigration)
+    {
+        var migrations = GetAllMigrations();
+
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+        if (appliedMigration != null)
         {
-            var migrations = GetAllMigrations().ToList();
-
-            return !migrations.Any() ? MigrationVersion.Default : migrations.Max(m => m.Version);
+            migrations = migrations.Where(x => x.Version > appliedMigration.Version);
         }
 
-        public IEnumerable<IMigration> GetMigrationsAfter(AppliedMigration appliedMigration)
-        {
-            var migrations = GetAllMigrations();
-
-            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-            if (appliedMigration != null)
-            {
-                migrations = migrations.Where(x => x.Version > appliedMigration.Version);
-            }
-
-            return migrations.OrderBy(m => m.Version);
-        }
+        return migrations.OrderBy(m => m.Version);
     }
 }
