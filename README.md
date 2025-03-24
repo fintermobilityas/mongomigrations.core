@@ -6,8 +6,8 @@
 
 | Build server | Platforms | Build status |
 |--------------|----------|--------------|
-| Github Actions | ubuntu-latest | Branch: develop ![mongomigrations.core](https://github.com/fintermobilityas/mongomigrations.core/workflows/mongomigrations.core/badge.svg?branch=develop) |
-| Github Actions | ubuntu-latest | Branch: master ![mongomigrations.core](https://github.com/fintermobilityas/mongomigrations.core/workflows/mongomigrations.core/badge.svg?branch=master) |
+| Github Actions | ubuntu-latest | Branch: develop ![mongomigrations.core](https://github.com/fintermobilityas/mongomigrations.core/actions/workflows/dotnet-core.yml/badge.svg?branch=develop) |
+| Github Actions | ubuntu-latest | Branch: master ![mongomigrations.core](https://github.com/fintermobilityas/mongomigrations.core/actions/workflows/dotnet-core.yml/badge.svg?branch=master) |
 
 ## 🚀 Getting Started Guide
 
