@@ -12,6 +12,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="MongoDB.Driver" />
+    <PackageReference Include="MongoDB.Bson" />
     <PackageReference Include="SourceLink.Embed.AllSourceFiles" PrivateAssets="all">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
