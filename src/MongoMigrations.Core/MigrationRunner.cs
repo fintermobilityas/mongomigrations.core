@@ -13,7 +13,7 @@ namespace MongoMigrations.Core;
 public interface IMigrationRunner
 {
     IMongoDatabase Database { get; }
-    [JetBrains.Annotations.UsedImplicitly] IMigrationLocator MigrationLocator { get; }
+    IMigrationLocator MigrationLocator { get; }
     IDatabaseMigrationStatus DatabaseStatus { get; }
     void UpdateToLatest(string serverName = null);
     bool IsDatabaseUpToDate(ReadPreference readPreference, CancellationToken cancellationToken = default);
@@ -38,8 +38,7 @@ public sealed class MigrationRunner : IMigrationRunner
     {
         _latestVersionLock = new object();
     }
-        
-    [JetBrains.Annotations.UsedImplicitly]
+    
     public MigrationRunner([NotNull] string connectionString, [NotNull] string database) : this(new MongoClient(connectionString).GetDatabase(database)) 
     {
         if (connectionString == null) throw new ArgumentNullException(nameof(connectionString));

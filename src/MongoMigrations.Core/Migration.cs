@@ -1,5 +1,4 @@
 using System;
-using JetBrains.Annotations;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
@@ -7,10 +6,10 @@ namespace MongoMigrations.Core;
 
 public interface IMigration
 {
-    [UsedImplicitly] IMongoDatabase Database { get; }
+    IMongoDatabase Database { get; }
     MigrationVersion Version { get; }
-    string Description { get; [UsedImplicitly] set; }
-    [UsedImplicitly] void Update();
+    string Description { get; set; }
+    void Update();
 }
 
 public interface IMigrationProperty
@@ -23,17 +22,17 @@ public interface IMigrationInvokable
 
 public interface ISupportFilter : IMigrationProperty
 {
-    [UsedImplicitly] FilterDefinition<BsonDocument> Filter { get; set; }
+    FilterDefinition<BsonDocument> Filter { get; set; }
 }
 
 public interface ISupportBatchSize : IMigrationProperty
 {
-    [UsedImplicitly] int BatchSize { get; set; }
+    int BatchSize { get; set; }
 }
 
 public interface ISupportProjection : IMigrationProperty
 {
-    [UsedImplicitly]
+    
     ProjectionDefinition<BsonDocument> Projection { get; set; }
 }
 

@@ -1,5 +1,5 @@
 using System;
-using JetBrains.Annotations;
+using System.Diagnostics.CodeAnalysis;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace MongoMigrations.Core;
@@ -20,10 +20,10 @@ public sealed class AppliedMigration
     }
 
     [BsonId]
-    public MigrationVersion Version { get; [UsedImplicitly]  set; }
-    [UsedImplicitly]
+    public MigrationVersion Version { get;  set; }
+    
     public string Description{ get; set; }
-    [UsedImplicitly]
+    
     public DateTime StartedOn { get; set; }
     public DateTime? CompletedOn { get; set; }
     public DateTime? FailedOn { get; set; }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using JetBrains.Annotations;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
@@ -9,7 +9,7 @@ using MongoMigrations.Core.Documents;
 
 namespace MongoMigrations.Core.Extensions;
 
-[UsedImplicitly]
+
 public static class MigrationExtensions
 {
 
@@ -90,7 +90,7 @@ public static class MigrationExtensions
         };
     }
 
-    [UsedImplicitly]
+    
     public static bool IsTypeOf([NotNull] this MigrationDocument document, [NotNull] string typeName)
     {
         if (document == null) throw new ArgumentNullException(nameof(document));
@@ -98,7 +98,7 @@ public static class MigrationExtensions
         return document.BsonDocument.IsTypeOf(typeName);
     }
 
-    [UsedImplicitly]
+    
     public static bool IsTypeOf([NotNull] this BsonDocument document, [NotNull] string typeName)
     {
         if (document == null) throw new ArgumentNullException(nameof(document));
@@ -117,7 +117,7 @@ public static class MigrationExtensions
         return value.AsBsonArray.Select(x => x.AsString).Contains(typeName, StringComparer.InvariantCulture);
     }
 
-    [UsedImplicitly]
+    
     public static void DropAllIndexes([NotNull] this IMongoDatabase database, [NotNull] string collectionName)
     {
         if (database == null) throw new ArgumentNullException(nameof(database));
@@ -125,14 +125,14 @@ public static class MigrationExtensions
         database.GetCollection<BsonDocument>(collectionName).DropAllIndexes();
     }
 
-    [UsedImplicitly]
+    
     public static void DropAllIndexes([NotNull] this IMongoCollection<BsonDocument> collection)
     {
         if (collection == null) throw new ArgumentNullException(nameof(collection));
         collection.Indexes.DropAll();
     }
 
-    [UsedImplicitly]
+    
     public static void RenameCollectionAndDropOldOne([NotNull] IMongoDatabase database, [NotNull] string oldCollectionName, [NotNull] string newCollectionName)
     {
         if (database == null) throw new ArgumentNullException(nameof(database));
@@ -141,7 +141,7 @@ public static class MigrationExtensions
         database.RenameCollectionAndDropOldOne(database.GetCollection<BsonDocument>(oldCollectionName), newCollectionName);
     }
 
-    [UsedImplicitly]
+    
     public static void RenameCollectionAndDropOldOne([NotNull] this IMongoDatabase database, [NotNull] IMongoCollection<BsonDocument> collection, [NotNull] string newCollectionName)
     {
         if (database == null) throw new ArgumentNullException(nameof(database));
@@ -154,7 +154,7 @@ public static class MigrationExtensions
     /// <summary>
     ///     Rename all instances of a name in a bson document to the new name.
     /// </summary>
-    [UsedImplicitly]
+    
     public static void ChangeName([NotNull] this BsonDocument bsonDocument, [NotNull] string originalName,
         [NotNull] string newName)
     {

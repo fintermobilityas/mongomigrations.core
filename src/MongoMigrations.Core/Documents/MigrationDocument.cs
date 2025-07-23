@@ -2,8 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using JetBrains.Annotations;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Driver;
@@ -17,12 +17,12 @@ public sealed class MigrationDocument([NotNull] BsonDocument document) : IEnumer
 {
     readonly List<IWriteModel> _writeModels = new();
 
-    [UsedImplicitly] public BsonDocument BsonDocument { get; } = document ?? throw new ArgumentNullException(nameof(document));
-    [UsedImplicitly] public BsonValue this[string name] => BsonDocument[name];
-    [UsedImplicitly] public List<string> WriteModelsJsonDebug => WriteModelsBsonDebug.Select(x => x?.ToJson(new JsonWriterSettings { OutputMode = JsonOutputMode.CanonicalExtendedJson })).ToList();
-    [UsedImplicitly] public List<BsonDocument> WriteModelsBsonDebug => this.Select(x => x.Model?.ToWriteModelBsonDocument()).ToList();
-    [UsedImplicitly] public int WriteModelsCount => this.Count();
-    [UsedImplicitly] public FilterDefinition<BsonDocument> ByDocumentIdFilter()
+    public BsonDocument BsonDocument { get; } = document ?? throw new ArgumentNullException(nameof(document));
+    public BsonValue this[string name] => BsonDocument[name];
+    public List<string> WriteModelsJsonDebug => WriteModelsBsonDebug.Select(x => x?.ToJson(new JsonWriterSettings { OutputMode = JsonOutputMode.CanonicalExtendedJson })).ToList();
+    public List<BsonDocument> WriteModelsBsonDebug => this.Select(x => x.Model?.ToWriteModelBsonDocument()).ToList();
+    public int WriteModelsCount => this.Count();
+    public FilterDefinition<BsonDocument> ByDocumentIdFilter()
     {
         if (!BsonDocument.TryGetElement("_id", out _))
         {
@@ -31,7 +31,7 @@ public sealed class MigrationDocument([NotNull] BsonDocument document) : IEnumer
         return Builders<BsonDocument>.Filter.Eq("_id", this["_id"]);
     }
 
-    [UsedImplicitly]
+    
     public List<IWriteModel> ForEach([NotNull] string name, [NotNull] Func<MigrationForEachDocument, IWriteModel> enumeratorFunc)
     {
         if (name == null) throw new ArgumentNullException(nameof(name));
@@ -42,7 +42,7 @@ public sealed class MigrationDocument([NotNull] BsonDocument document) : IEnumer
         return _writeModels;
     }
 
-    [UsedImplicitly]
+    
     public IEnumerable<IWriteModel> Update([NotNull] FilterDefinition<BsonDocument> filterDefinition, [NotNull] BsonDocument document)
     {
         if (filterDefinition == null) throw new ArgumentNullException(nameof(filterDefinition));
@@ -51,7 +51,7 @@ public sealed class MigrationDocument([NotNull] BsonDocument document) : IEnumer
         return _writeModels;
     }
 
-    [UsedImplicitly]
+    
     public IEnumerable<IWriteModel> Update([NotNull] FilterDefinition<BsonDocument> filterDefinition, [NotNull] UpdateDefinition<BsonDocument> updateDefinition)
     {
         if (filterDefinition == null) throw new ArgumentNullException(nameof(filterDefinition));
@@ -60,7 +60,7 @@ public sealed class MigrationDocument([NotNull] BsonDocument document) : IEnumer
         return _writeModels;
     }
 
-    [UsedImplicitly]
+    
     public IEnumerable<IWriteModel> Update([NotNull] FilterDefinition<BsonDocument> filterDefinition, [NotNull] Func<UpdateDefinitionBuilder<BsonDocument>, UpdateDefinition<BsonDocument>> builder)
     {
         if (filterDefinition == null) throw new ArgumentNullException(nameof(filterDefinition));
@@ -68,7 +68,7 @@ public sealed class MigrationDocument([NotNull] BsonDocument document) : IEnumer
         return Update(filterDefinition, builder(Builders<BsonDocument>.Update));
     }
 
-    [UsedImplicitly]
+    
     public IEnumerable<IWriteModel> Delete([NotNull] FilterDefinition<BsonDocument> filterDefinition)
     {
         if (filterDefinition == null) throw new ArgumentNullException(nameof(filterDefinition));
@@ -76,34 +76,34 @@ public sealed class MigrationDocument([NotNull] BsonDocument document) : IEnumer
         return _writeModels;
     }
 
-    [UsedImplicitly]
+    
     public IEnumerable<IWriteModel> Update([NotNull] BsonDocument document)
     {
         if (document == null) throw new ArgumentNullException(nameof(document));
         return Update(ByDocumentIdFilter(), document);
     }
 
-    [UsedImplicitly]
+    
     public IEnumerable<IWriteModel> Update([NotNull] UpdateDefinition<BsonDocument> updateDefinition)
     {
         if (updateDefinition == null) throw new ArgumentNullException(nameof(updateDefinition));
         return Update(ByDocumentIdFilter(), updateDefinition);
     }
 
-    [UsedImplicitly]
+    
     public IEnumerable<IWriteModel> Update([NotNull] Func<UpdateDefinitionBuilder<BsonDocument>, UpdateDefinition<BsonDocument>> builder)
     {
         if (builder == null) throw new ArgumentNullException(nameof(builder));
         return Update(builder(Builders<BsonDocument>.Update));
     }
 
-    [UsedImplicitly]
+    
     public IEnumerable<IWriteModel> Delete()
     {
         return Delete(ByDocumentIdFilter());
     }
 
-    [UsedImplicitly]
+    
     public IEnumerable<IWriteModel> Skip()
     {
         return new List<IWriteModel> { new DoNotApplyWriteModel() };

@@ -8,9 +8,6 @@
     <Description>Typed migrations for MongoDB</Description> 
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="JetBrains.Annotations">
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
     <PackageReference Include="MongoDB.Driver" />
     <PackageReference Include="MongoDB.Bson" />
     <PackageReference Include="SourceLink.Embed.AllSourceFiles" PrivateAssets="all">
