@@ -24,11 +24,11 @@ public sealed class MigrationRunner : IMigrationRunner
 {
     readonly object _latestVersionLock;
     MigrationVersion? _latestVersion;
-        
+
     public IMongoDatabase Database { get; }
     public IMigrationLocator MigrationLocator { get; }
     public IDatabaseMigrationStatus DatabaseStatus { get; }
-        
+
     static MigrationRunner()
     {
         BsonSerializer.RegisterSerializer(typeof(MigrationVersion), new MigrationVersionSerializer());
@@ -38,8 +38,8 @@ public sealed class MigrationRunner : IMigrationRunner
     {
         _latestVersionLock = new object();
     }
-    
-    public MigrationRunner([NotNull] string connectionString, [NotNull] string database) : this(new MongoClient(connectionString).GetDatabase(database)) 
+
+    public MigrationRunner([NotNull] string connectionString, [NotNull] string database) : this(new MongoClient(connectionString).GetDatabase(database))
     {
         if (connectionString == null) throw new ArgumentNullException(nameof(connectionString));
         if (database == null) throw new ArgumentNullException(nameof(database));

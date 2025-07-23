@@ -31,7 +31,7 @@ public sealed class MigrationDocument([NotNull] BsonDocument document) : IEnumer
         return Builders<BsonDocument>.Filter.Eq("_id", this["_id"]);
     }
 
-    
+
     public List<IWriteModel> ForEach([NotNull] string name, [NotNull] Func<MigrationForEachDocument, IWriteModel> enumeratorFunc)
     {
         if (name == null) throw new ArgumentNullException(nameof(name));
@@ -42,7 +42,7 @@ public sealed class MigrationDocument([NotNull] BsonDocument document) : IEnumer
         return _writeModels;
     }
 
-    
+
     public IEnumerable<IWriteModel> Update([NotNull] FilterDefinition<BsonDocument> filterDefinition, [NotNull] BsonDocument document)
     {
         if (filterDefinition == null) throw new ArgumentNullException(nameof(filterDefinition));
@@ -51,7 +51,7 @@ public sealed class MigrationDocument([NotNull] BsonDocument document) : IEnumer
         return _writeModels;
     }
 
-    
+
     public IEnumerable<IWriteModel> Update([NotNull] FilterDefinition<BsonDocument> filterDefinition, [NotNull] UpdateDefinition<BsonDocument> updateDefinition)
     {
         if (filterDefinition == null) throw new ArgumentNullException(nameof(filterDefinition));
@@ -60,7 +60,7 @@ public sealed class MigrationDocument([NotNull] BsonDocument document) : IEnumer
         return _writeModels;
     }
 
-    
+
     public IEnumerable<IWriteModel> Update([NotNull] FilterDefinition<BsonDocument> filterDefinition, [NotNull] Func<UpdateDefinitionBuilder<BsonDocument>, UpdateDefinition<BsonDocument>> builder)
     {
         if (filterDefinition == null) throw new ArgumentNullException(nameof(filterDefinition));
@@ -68,7 +68,7 @@ public sealed class MigrationDocument([NotNull] BsonDocument document) : IEnumer
         return Update(filterDefinition, builder(Builders<BsonDocument>.Update));
     }
 
-    
+
     public IEnumerable<IWriteModel> Delete([NotNull] FilterDefinition<BsonDocument> filterDefinition)
     {
         if (filterDefinition == null) throw new ArgumentNullException(nameof(filterDefinition));
@@ -76,41 +76,41 @@ public sealed class MigrationDocument([NotNull] BsonDocument document) : IEnumer
         return _writeModels;
     }
 
-    
+
     public IEnumerable<IWriteModel> Update([NotNull] BsonDocument document)
     {
         if (document == null) throw new ArgumentNullException(nameof(document));
         return Update(ByDocumentIdFilter(), document);
     }
 
-    
+
     public IEnumerable<IWriteModel> Update([NotNull] UpdateDefinition<BsonDocument> updateDefinition)
     {
         if (updateDefinition == null) throw new ArgumentNullException(nameof(updateDefinition));
         return Update(ByDocumentIdFilter(), updateDefinition);
     }
 
-    
+
     public IEnumerable<IWriteModel> Update([NotNull] Func<UpdateDefinitionBuilder<BsonDocument>, UpdateDefinition<BsonDocument>> builder)
     {
         if (builder == null) throw new ArgumentNullException(nameof(builder));
         return Update(builder(Builders<BsonDocument>.Update));
     }
 
-    
+
     public IEnumerable<IWriteModel> Delete()
     {
         return Delete(ByDocumentIdFilter());
     }
 
-    
+
     public IEnumerable<IWriteModel> Skip()
     {
         return new List<IWriteModel> { new DoNotApplyWriteModel() };
     }
 
     public IEnumerator<IWriteModel> GetEnumerator()
-    {   
+    {
         return _writeModels.GetEnumerator();
     }
 

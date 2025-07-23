@@ -48,7 +48,7 @@ public sealed class DatabaseMigrationStatus : IDatabaseMigrationStatus
             .SortByDescending(v => v.Version);
     }
 
-    public void AddIndexes() => 
+    public void AddIndexes() =>
         Collection.Indexes.CreateOne(new CreateIndexModel<AppliedMigration>(new IndexKeysDefinitionBuilder<AppliedMigration>().Ascending(x => x.CompletedOn)));
 
     public List<AppliedMigration> GetMigrations()
@@ -67,17 +67,17 @@ public sealed class DatabaseMigrationStatus : IDatabaseMigrationStatus
             .FirstOrDefault(cancellationToken);
         return latestAppliedMigration != null && latestAppliedMigration.Version != MigrationVersion.Default;
     }
-        
+
     public async Task<bool> IsDatabaseUpToDateAsync(MigrationVersion latestVersion, ReadPreference readPreference, CancellationToken cancellationToken)
     {
         var pipelineDefinition = BuildIsDatebaseUpToDatePipelineDefinition(latestVersion);
-        var latestAppliedMigration = await 
+        var latestAppliedMigration = await
             WithReadPreference(readPreference)
                 .Aggregate(pipelineDefinition)
                 .FirstOrDefaultAsync(cancellationToken);
         return latestAppliedMigration != null && latestAppliedMigration.Version != MigrationVersion.Default;
     }
-        
+
     public AppliedMigration GetLastAppliedMigration(CancellationToken cancellationToken = default)
     {
         return _getLastApplicationMigrationBuilder.FirstOrDefault(cancellationToken);
@@ -97,7 +97,7 @@ public sealed class DatabaseMigrationStatus : IDatabaseMigrationStatus
 
     public async Task<bool> IsMigrationInProgressAsync(CancellationToken cancellationToken = default)
     {
-        return await 
+        return await
             Collection
                 .Find(Builders<AppliedMigration>.Filter.Eq(x => x.CompletedOn, null))
                 .CountDocumentsAsync(cancellationToken)
@@ -132,10 +132,10 @@ public sealed class DatabaseMigrationStatus : IDatabaseMigrationStatus
         Collection.UpdateOne(Builders<AppliedMigration>.Filter.Eq(x => x.Version, appliedMigration.Version),
             Builders<AppliedMigration>.Update.Set(x => x.CompletedOn, appliedMigration.CompletedOn));
     }
-        
-    IMongoCollection<AppliedMigration> WithReadPreference(ReadPreference readPreference = null) => 
+
+    IMongoCollection<AppliedMigration> WithReadPreference(ReadPreference readPreference = null) =>
         Collection.WithReadPreference(readPreference ?? _defaultReadPreference);
-        
+
     static PipelineDefinition<AppliedMigration, AppliedMigration> BuildIsDatebaseUpToDatePipelineDefinition(MigrationVersion latestVersion) =>
         new List<BsonDocument>
         {

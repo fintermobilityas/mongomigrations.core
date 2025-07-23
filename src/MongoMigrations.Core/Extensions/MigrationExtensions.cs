@@ -17,7 +17,7 @@ public static class MigrationExtensions
     {
         if (updateDefinition == null) throw new ArgumentNullException(nameof(updateDefinition));
         var documentSerializer = BsonSerializer.SerializerRegistry.GetSerializer<TDocument>();
-        var renderedFilter = updateDefinition.Render(new RenderArgs<TDocument> 
+        var renderedFilter = updateDefinition.Render(new RenderArgs<TDocument>
         {
             SerializerRegistry = BsonSerializer.SerializerRegistry,
             DocumentSerializer = documentSerializer
@@ -29,7 +29,7 @@ public static class MigrationExtensions
     {
         if (updateDefinition == null) throw new ArgumentNullException(nameof(updateDefinition));
         var documentSerializer = BsonSerializer.SerializerRegistry.GetSerializer<TDocument>();
-        var renderedFilter = updateDefinition.Render(new RenderArgs<TDocument> 
+        var renderedFilter = updateDefinition.Render(new RenderArgs<TDocument>
         {
             SerializerRegistry = BsonSerializer.SerializerRegistry,
             DocumentSerializer = documentSerializer
@@ -41,7 +41,7 @@ public static class MigrationExtensions
     {
         if (filterDefinition == null) throw new ArgumentNullException(nameof(filterDefinition));
         var documentSerializer = BsonSerializer.SerializerRegistry.GetSerializer<TDocument>();
-        var renderedFilter = filterDefinition.Render(new RenderArgs<TDocument> 
+        var renderedFilter = filterDefinition.Render(new RenderArgs<TDocument>
         {
             SerializerRegistry = BsonSerializer.SerializerRegistry,
             DocumentSerializer = documentSerializer
@@ -90,7 +90,7 @@ public static class MigrationExtensions
         };
     }
 
-    
+
     public static bool IsTypeOf([NotNull] this MigrationDocument document, [NotNull] string typeName)
     {
         if (document == null) throw new ArgumentNullException(nameof(document));
@@ -98,7 +98,7 @@ public static class MigrationExtensions
         return document.BsonDocument.IsTypeOf(typeName);
     }
 
-    
+
     public static bool IsTypeOf([NotNull] this BsonDocument document, [NotNull] string typeName)
     {
         if (document == null) throw new ArgumentNullException(nameof(document));
@@ -117,7 +117,7 @@ public static class MigrationExtensions
         return value.AsBsonArray.Select(x => x.AsString).Contains(typeName, StringComparer.InvariantCulture);
     }
 
-    
+
     public static void DropAllIndexes([NotNull] this IMongoDatabase database, [NotNull] string collectionName)
     {
         if (database == null) throw new ArgumentNullException(nameof(database));
@@ -125,14 +125,14 @@ public static class MigrationExtensions
         database.GetCollection<BsonDocument>(collectionName).DropAllIndexes();
     }
 
-    
+
     public static void DropAllIndexes([NotNull] this IMongoCollection<BsonDocument> collection)
     {
         if (collection == null) throw new ArgumentNullException(nameof(collection));
         collection.Indexes.DropAll();
     }
 
-    
+
     public static void RenameCollectionAndDropOldOne([NotNull] IMongoDatabase database, [NotNull] string oldCollectionName, [NotNull] string newCollectionName)
     {
         if (database == null) throw new ArgumentNullException(nameof(database));
@@ -141,7 +141,7 @@ public static class MigrationExtensions
         database.RenameCollectionAndDropOldOne(database.GetCollection<BsonDocument>(oldCollectionName), newCollectionName);
     }
 
-    
+
     public static void RenameCollectionAndDropOldOne([NotNull] this IMongoDatabase database, [NotNull] IMongoCollection<BsonDocument> collection, [NotNull] string newCollectionName)
     {
         if (database == null) throw new ArgumentNullException(nameof(database));
@@ -154,7 +154,7 @@ public static class MigrationExtensions
     /// <summary>
     ///     Rename all instances of a name in a bson document to the new name.
     /// </summary>
-    
+
     public static void ChangeName([NotNull] this BsonDocument bsonDocument, [NotNull] string originalName,
         [NotNull] string newName)
     {

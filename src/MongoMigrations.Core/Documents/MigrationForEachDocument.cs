@@ -31,11 +31,11 @@ public sealed class MigrationForEachDocument(
         }
         return Builders<BsonDocument>.Filter.Eq($"{Name}._id", this["_id"]);
     }
-    
+
     public BsonValue this[string name] => BsonDocument[name];
     public string Field(string field) => $"{Name}.{Index}.{field}";
 
-    
+
     public IWriteModel Update([NotNull] FilterDefinition<BsonDocument> filterDefinition, [NotNull] UpdateDefinition<BsonDocument> updateDefinition)
     {
         if (filterDefinition == null) throw new ArgumentNullException(nameof(filterDefinition));
@@ -43,7 +43,7 @@ public sealed class MigrationForEachDocument(
         return new WriteModel(new UpdateOneModel<BsonDocument>(filterDefinition, updateDefinition));
     }
 
-    
+
     public IWriteModel Update([NotNull] FilterDefinition<BsonDocument> filterDefinition, [NotNull] Func<UpdateDefinitionBuilder<BsonDocument>, UpdateDefinition<BsonDocument>> builder)
     {
         if (filterDefinition == null) throw new ArgumentNullException(nameof(filterDefinition));
@@ -51,28 +51,28 @@ public sealed class MigrationForEachDocument(
         return new WriteModel(new UpdateOneModel<BsonDocument>(filterDefinition, builder(Builders<BsonDocument>.Update)));
     }
 
-    
+
     public IWriteModel Update([NotNull] UpdateDefinition<BsonDocument> updateDefinition)
     {
         if (updateDefinition == null) throw new ArgumentNullException(nameof(updateDefinition));
         return Update(ByDocumentIdFilter(), updateDefinition);
     }
 
-    
+
     public IWriteModel Update([NotNull] Func<UpdateDefinitionBuilder<BsonDocument>, UpdateDefinition<BsonDocument>> builder)
     {
         if (builder == null) throw new ArgumentNullException(nameof(builder));
         return Update(builder(Builders<BsonDocument>.Update));
     }
 
-    
+
     public IWriteModel Delete([NotNull] FilterDefinition<BsonDocument> filterDefinition)
     {
         if (filterDefinition == null) throw new ArgumentNullException(nameof(filterDefinition));
         return new WriteModel(new UpdateOneModel<BsonDocument>(_parentFilterDefinition, Builders<BsonDocument>.Update.PullFilter(Name, filterDefinition)));
     }
 
-    
+
     public IWriteModel Skip()
     {
         return new DoNotApplyWriteModel();

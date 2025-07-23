@@ -14,7 +14,7 @@ public sealed class DatabaseFixture : IDisposable
         MongoClient = new MongoClient(MongoDbConnectionString);
         Database = MongoClient.GetDatabase("MongoMigrationsUnitTests");
     }
-        
+
     public void Dispose()
     {
 

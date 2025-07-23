@@ -14,14 +14,14 @@ namespace MongoMigrations.Core;
 public interface ICollectionMigration : ISupportFilter, ISupportOnBeforeMigration, ISupportOnAfterSuccessfullMigration, ISupportBatchSize, ISupportProjection
 {
     int DocumentCount { get; }
-    int DocumentsDeletedCount {get;}
-    
+    int DocumentsDeletedCount { get; }
+
     IMongoCollection<BsonDocument> Collection { get; }
-    
+
     string CollectionName { get; }
 }
 
-[DebuggerDisplay("Version: {" + nameof(Version) + "}. Collection name: {" + nameof(CollectionName) + "}. Batch size: {"+ nameof(BatchSize) + "}.")]
+[DebuggerDisplay("Version: {" + nameof(Version) + "}. Collection name: {" + nameof(CollectionName) + "}. Batch size: {" + nameof(BatchSize) + "}.")]
 
 public abstract class CollectionMigration : Migration, ICollectionMigration
 {
@@ -38,9 +38,9 @@ public abstract class CollectionMigration : Migration, ICollectionMigration
     public string CollectionName { get; }
     public int BatchSize { get; set; } = 1000;
     public FilterDefinition<BsonDocument> Filter { get; set; } = FilterDefinition<BsonDocument>.Empty;
-    public ProjectionDefinition<BsonDocument> Projection { get; set; } 
+    public ProjectionDefinition<BsonDocument> Projection { get; set; }
 
-    
+
     public abstract IEnumerable<IWriteModel> MigrateDocument(MigrationDocument document);
 
     /// <summary>
@@ -144,7 +144,7 @@ public abstract class CollectionMigration : Migration, ICollectionMigration
                 {
                     throw new Exception($"Multiple delete write models is not allowed. Delete count: {migrateDocumentDeleteWriteModels.Count}. Write models count: {migrationDocumentWriteModels.Count}");
                 }
-      
+
                 if (doNotApplyWriteModelCount == 1 && migrationDocumentWriteModels.Count > 1)
                 {
                     throw new Exception($"Multiple write models is not allowed when skipping a document. Write model count: {migrationDocumentWriteModels.Count}.");

@@ -32,7 +32,7 @@ public interface ISupportBatchSize : IMigrationProperty
 
 public interface ISupportProjection : IMigrationProperty
 {
-    
+
     ProjectionDefinition<BsonDocument> Projection { get; set; }
 }
 
