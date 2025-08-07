@@ -1,5 +1,5 @@
 ﻿using System;
-using JetBrains.Annotations;
+using System.Diagnostics.CodeAnalysis;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Driver;
@@ -11,8 +11,8 @@ namespace MongoMigrations.Core.Documents;
 public sealed class MigrationUpdateDocument : IWriteModel
 {
     public WriteModel<BsonDocument> Model { get; }
-    [UsedImplicitly] public string JsonDocument => BsonDocument?.ToJson(new JsonWriterSettings { OutputMode = JsonOutputMode.CanonicalExtendedJson });
-    [UsedImplicitly] public BsonDocument BsonDocument => Model?.ToWriteModelBsonDocument();
+    public string JsonDocument => BsonDocument?.ToJson(new JsonWriterSettings { OutputMode = JsonOutputMode.CanonicalExtendedJson });
+    public BsonDocument BsonDocument => Model?.ToWriteModelBsonDocument();
 
     public MigrationUpdateDocument([NotNull] FilterDefinition<BsonDocument> filterDefinition, [NotNull] UpdateDefinition<BsonDocument> updateDefinition)
     {

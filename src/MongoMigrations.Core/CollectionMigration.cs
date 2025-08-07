@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using JetBrains.Annotations;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoMigrations.Core.Documents;
@@ -13,16 +13,16 @@ namespace MongoMigrations.Core;
 
 public interface ICollectionMigration : ISupportFilter, ISupportOnBeforeMigration, ISupportOnAfterSuccessfullMigration, ISupportBatchSize, ISupportProjection
 {
-    [UsedImplicitly] int DocumentCount { get; }
-    [UsedImplicitly] int DocumentsDeletedCount {get;}
-    [UsedImplicitly]
+    int DocumentCount { get; }
+    int DocumentsDeletedCount { get; }
+
     IMongoCollection<BsonDocument> Collection { get; }
-    [UsedImplicitly]
+
     string CollectionName { get; }
 }
 
-[DebuggerDisplay("Version: {" + nameof(Version) + "}. Collection name: {" + nameof(CollectionName) + "}. Batch size: {"+ nameof(BatchSize) + "}.")]
-[UsedImplicitly]
+[DebuggerDisplay("Version: {" + nameof(Version) + "}. Collection name: {" + nameof(CollectionName) + "}. Batch size: {" + nameof(BatchSize) + "}.")]
+
 public abstract class CollectionMigration : Migration, ICollectionMigration
 {
     // ReSharper disable once PublicConstructorInAbstractClass
@@ -38,10 +38,10 @@ public abstract class CollectionMigration : Migration, ICollectionMigration
     public string CollectionName { get; }
     public int BatchSize { get; set; } = 1000;
     public FilterDefinition<BsonDocument> Filter { get; set; } = FilterDefinition<BsonDocument>.Empty;
-    public ProjectionDefinition<BsonDocument> Projection { get; set; } 
+    public ProjectionDefinition<BsonDocument> Projection { get; set; }
 
-    [UsedImplicitly]
-    [NotNull] public abstract IEnumerable<IWriteModel> MigrateDocument(MigrationDocument document);
+
+    public abstract IEnumerable<IWriteModel> MigrateDocument(MigrationDocument document);
 
     /// <summary>
     ///     Invoked before `Update`
@@ -144,7 +144,7 @@ public abstract class CollectionMigration : Migration, ICollectionMigration
                 {
                     throw new Exception($"Multiple delete write models is not allowed. Delete count: {migrateDocumentDeleteWriteModels.Count}. Write models count: {migrationDocumentWriteModels.Count}");
                 }
-      
+
                 if (doNotApplyWriteModelCount == 1 && migrationDocumentWriteModels.Count > 1)
                 {
                     throw new Exception($"Multiple write models is not allowed when skipping a document. Write model count: {migrationDocumentWriteModels.Count}.");

@@ -163,7 +163,7 @@ public class MigrationRunnerTests(DatabaseFixture databaseFixture) : IClassFixtu
         Assert.Equal(1, migrations[0].Version.Version);
         Assert.NotNull(migrations[0].CompletedOn);
     }
-        
+
     [Fact]
     public void TestUpdateToLatest_IsNotLatestVersion_MigrationFailed()
     {
@@ -196,7 +196,7 @@ public class MigrationRunnerTests(DatabaseFixture databaseFixture) : IClassFixtu
         Assert.Equal(1, migrations[0].Version.Version);
         Assert.NotNull(migrations[0].CompletedOn);
         Assert.Null(migrations[0].FailedOn);
-            
+
         Assert.Equal(2, migrations[1].Version.Version);
         Assert.Null(migrations[1].CompletedOn);
         Assert.NotNull(migrations[1].FailedOn);
@@ -259,7 +259,7 @@ public class MigrationRunnerTests(DatabaseFixture databaseFixture) : IClassFixtu
     public void TestUpdateLatest_Is_Thread_Safe()
     {
         var random = new Random();
-            
+
         var mocks = Enumerable.Range(0, 2).Select(version =>
         {
             var mock = new Mock<IMigration>();
@@ -304,7 +304,7 @@ public class MigrationRunnerTests(DatabaseFixture databaseFixture) : IClassFixtu
                 }
             }
         }
-            
+
         new Thread(() => TryMigrate("thread1")) { IsBackground = true }.Start();
         new Thread(() => TryMigrate("thread2")) { IsBackground = true }.Start();
         new Thread(() => TryMigrate("thread3")) { IsBackground = true }.Start();

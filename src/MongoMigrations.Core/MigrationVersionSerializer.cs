@@ -1,5 +1,5 @@
 using System;
-using JetBrains.Annotations;
+using System.Diagnostics.CodeAnalysis;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 

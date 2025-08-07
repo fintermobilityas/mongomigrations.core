@@ -30,7 +30,6 @@ public sealed class MigrationLocator() : IMigrationLocator
         _migrationsDictionary[assembly.FullName] = migrations ?? throw new ArgumentNullException(nameof(migrations));
     }
 
-    [JetBrains.Annotations.UsedImplicitly]
     public void LookForMigrationsInAssemblyOfType<T>()
     {
         var assembly = typeof(T).Assembly;
