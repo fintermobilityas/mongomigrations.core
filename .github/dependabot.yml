@@ -5,6 +5,11 @@ updates:
   schedule:
     interval: daily
     time: "05:00"
+  groups:
+    MongoDB:
+      patterns:
+        - "MongoDB.Bson"
+        - "MongoDB.Driver"
 - package-ecosystem: "github-actions"
   directory: "/"
   schedule:
