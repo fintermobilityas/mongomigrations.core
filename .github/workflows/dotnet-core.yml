@@ -58,7 +58,9 @@ jobs:
       - name: Setup dotnet ${{ env.DOTNET_SDK_VERSION }}
         uses: actions/setup-dotnet@v5.0.0
         with:
-          dotnet-version: '${{ env.DOTNET_SDK_VERSION }}'
+          dotnet-version: |
+            9.0.x
+            ${{ env.DOTNET_SDK_VERSION }}
                 
       - name: Build & Run Tests
         shell: pwsh
@@ -83,7 +85,9 @@ jobs:
       - name: Setup dotnet ${{ env.DOTNET_SDK_VERSION }}
         uses: actions/setup-dotnet@v5.0.0
         with:
-          dotnet-version: '${{ env.DOTNET_SDK_VERSION }}'
+          dotnet-version: |
+            9.0.x
+            ${{ env.DOTNET_SDK_VERSION }}
 
       - name: Nupkg        
         shell: pwsh
