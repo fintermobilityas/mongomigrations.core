@@ -4,7 +4,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>MongoMigrations.Core</RootNamespace>
     <AssemblyName>MongoMigrations.Core</AssemblyName>
-    <TargetFrameworks>netstandard2.1;net9.0;net10.0</TargetFrameworks>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <Description>Typed migrations for MongoDB</Description> 
   </PropertyGroup>
   <ItemGroup>
