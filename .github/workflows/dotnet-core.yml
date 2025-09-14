@@ -4,7 +4,8 @@ on: push
 
 env:
   GITVERSION_VERSION: 5.12.0
-  DOTNET_SDK_VERSION: 9.0.305
+  DOTNET_90_SDK_VERSION: 9.0.x
+  DOTNET_100_SDK_VERSION: 10.0.100-rc.1.25451.107
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1 
 
@@ -55,10 +56,12 @@ jobs:
         with:
           mongodb-version: ${{ matrix.mongodb-version }}
                                     
-      - name: Setup dotnet ${{ env.DOTNET_SDK_VERSION }}
+      - name: Setup dotnet ${{ env.DOTNET_100_SDK_VERSION }}
         uses: actions/setup-dotnet@v5.0.0
         with:
-          dotnet-version: '${{ env.DOTNET_SDK_VERSION }}'
+          dotnet-version: |
+            ${{ env.DOTNET_90_SDK_VERSION }}
+            ${{ env.DOTNET_100_SDK_VERSION }}
                 
       - name: Build & Run Tests
         shell: pwsh
@@ -80,10 +83,12 @@ jobs:
         with:
           fetch-depth: 0
       
-      - name: Setup dotnet ${{ env.DOTNET_SDK_VERSION }}
+      - name: Setup dotnet ${{ env.DOTNET_100_SDK_VERSION }}
         uses: actions/setup-dotnet@v5.0.0
         with:
-          dotnet-version: '${{ env.DOTNET_SDK_VERSION }}'
+          dotnet-version: |
+            ${{ env.DOTNET_90_SDK_VERSION }}
+            ${{ env.DOTNET_100_SDK_VERSION }}
 
       - name: Nupkg        
         shell: pwsh
