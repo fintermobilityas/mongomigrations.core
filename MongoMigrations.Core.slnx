@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="GitVersion.yml" />
+    <File Path="nuget.config" />
+  </Folder>
+  <Project Path="src/MongoMigrations.Core.Tests/MongoMigrations.Core.Tests.csproj" />
+  <Project Path="src/MongoMigrations.Core/MongoMigrations.Core.csproj" />
+</Solution>

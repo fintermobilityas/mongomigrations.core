@@ -4,5 +4,6 @@ obj/
 nupkgs/
 build/
 *.orig
+*.backup
 
 .idea/.idea.MongoMigrations.Core/.idea/
