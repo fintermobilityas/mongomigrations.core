@@ -39,7 +39,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        mongodb-version: ['8.0.8']
+        mongodb-version: ['8.0']
     steps:      
       - name: Checkout
         uses: actions/checkout@v6
@@ -53,7 +53,7 @@ jobs:
           mongodb-version: ${{ matrix.mongodb-version }}
                                     
       - name: Setup dotnet ${{ env.DOTNET_100_SDK_VERSION }}
-        uses: actions/setup-dotnet@v5.0.1
+        uses: actions/setup-dotnet@v5.1.0
         with:
           dotnet-version: |
             ${{ env.DOTNET_90_SDK_VERSION }}
@@ -80,7 +80,7 @@ jobs:
           fetch-depth: 0
       
       - name: Setup dotnet ${{ env.DOTNET_100_SDK_VERSION }}
-        uses: actions/setup-dotnet@v5.0.1
+        uses: actions/setup-dotnet@v5.1.0
         with:
           dotnet-version: |
             ${{ env.DOTNET_90_SDK_VERSION }}
@@ -104,11 +104,9 @@ jobs:
 
       - name: Create github release tag
         if: success() && github.ref == 'refs/heads/master'
-        uses: actions/create-release@v1.1.4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2.5.0
         with:
           tag_name: v${{ env.BUILD_VERSION }}
-          release_name: Release v${{ env.BUILD_VERSION }}
+          name: Release v${{ env.BUILD_VERSION }}
           draft: true
           prerelease: false
