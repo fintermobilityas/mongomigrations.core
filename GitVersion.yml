@@ -1,4 +1,4 @@
-next-version: 4.0.14
+next-version: 4.0.15
 mode: ContinuousDeployment
 branches:
   develop:
