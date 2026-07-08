@@ -17,7 +17,7 @@ jobs:
       BUILD_VERSION: ${{ steps.set-version.outputs.BUILD_VERSION }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
       
@@ -41,7 +41,7 @@ jobs:
         mongodb-version: ['8.0']
     steps:      
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
  
@@ -52,7 +52,7 @@ jobs:
           mongodb-version: ${{ matrix.mongodb-version }}
                                     
       - name: Setup dotnet ${{ env.DOTNET_100_SDK_VERSION }}
-        uses: actions/setup-dotnet@v5.2.0
+        uses: actions/setup-dotnet@v5.4.0
         with:
           dotnet-version: ${{ env.DOTNET_100_SDK_VERSION }}
                 
@@ -72,12 +72,12 @@ jobs:
       contents: write
      steps:      
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
       
       - name: Setup dotnet ${{ env.DOTNET_100_SDK_VERSION }}
-        uses: actions/setup-dotnet@v5.2.0
+        uses: actions/setup-dotnet@v5.4.0
         with:
           dotnet-version: ${{ env.DOTNET_100_SDK_VERSION }}
 
@@ -91,7 +91,7 @@ jobs:
         run: |                             
           $nupkgs = Get-ChildItem ".\${{ env.GITHUB_WORKSPACE }}\nupkgs" -Filter *.nupkg | Select-Object -ExpandProperty FullName          
           $nupkgs | ForEach-Object {
-            dotnet nuget push $_ --source nuget.org --api-key ${{ secrets.PETERSUNDE_NUGET_ORG_API_KEY }}  
+            dotnet nuget push $_ --source nuget.org --api-key ${{ secrets.PETERSUNDE_NUGET_ORG_API_KEY }}
             if($LASTEXITCODE -ne 0) {
                Write-Error "Error uploading nupkg: $_. Exit code: $LASTEXITCODE"
             }
@@ -99,7 +99,7 @@ jobs:
 
       - name: Create github release tag
         if: success() && github.ref == 'refs/heads/master'
-        uses: softprops/action-gh-release@v3.0.0
+        uses: softprops/action-gh-release@v3.0.1
         with:
           tag_name: v${{ env.BUILD_VERSION }}
           name: Release v${{ env.BUILD_VERSION }}
