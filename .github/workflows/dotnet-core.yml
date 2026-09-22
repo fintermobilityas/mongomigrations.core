@@ -1,6 +1,14 @@
 name: mongomigrations.core
 
-on: push
+on:
+  push:
+  workflow_dispatch:
+    inputs:
+      auth_only:
+        description: Verify NuGet trusted publishing without releasing
+        required: false
+        default: true
+        type: boolean
 
 env:
   GITVERSION_VERSION: 6.4.0
@@ -10,7 +18,8 @@ env:
 
 jobs:
 
-  setup:    
+  setup:
+    if: ${{ !inputs.auth_only }}
     name: Setup
     runs-on: ubuntu-latest
     outputs:
@@ -64,12 +73,14 @@ jobs:
   publish:
      if: success() && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master')
      runs-on: ubuntu-latest
+     environment: nuget-publishing
      name: Publish nuget package
      needs: [setup, build]
      env:
       BUILD_VERSION: ${{ needs.setup.outputs.BUILD_VERSION }}
      permissions:
       contents: write
+      id-token: write
      steps:      
       - name: Checkout
         uses: actions/checkout@v7
@@ -86,12 +97,20 @@ jobs:
         run: |
           pwsh -command ".\${{ env.GITHUB_WORKSPACE }}\build.ps1" -Version ${{ env.BUILD_VERSION }} -Nupkg
           
+      - name: Authenticate to NuGet.org
+        id: nuget-login
+        uses: NuGet/login@v1 # Organization allow-list permits version tags only.
+        with:
+          user: petersunde
+
       - name: Push nuget packages
         shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
         run: |                             
           $nupkgs = Get-ChildItem ".\${{ env.GITHUB_WORKSPACE }}\nupkgs" -Filter *.nupkg | Select-Object -ExpandProperty FullName          
           $nupkgs | ForEach-Object {
-            dotnet nuget push $_ --source nuget.org --api-key ${{ secrets.PETERSUNDE_NUGET_ORG_API_KEY }}
+            dotnet nuget push $_ --source nuget.org --api-key $env:NUGET_API_KEY
             if($LASTEXITCODE -ne 0) {
                Write-Error "Error uploading nupkg: $_. Exit code: $LASTEXITCODE"
             }
@@ -106,3 +125,24 @@ jobs:
           name: Release v${{ env.BUILD_VERSION }}
           draft: false
           prerelease: false
+
+  verify-nuget-auth:
+    name: Verify NuGet trusted publishing
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.auth_only }}
+    runs-on: ubuntu-latest
+    environment: nuget-publishing
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Authenticate to NuGet.org
+        id: nuget-login
+        uses: NuGet/login@v1 # Organization allow-list permits version tags only.
+        with:
+          user: petersunde
+      - name: Verify temporary credential issuance
+        env:
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+        run: |
+          test -n "$NUGET_API_KEY"
+          echo "NuGet trusted publishing issued a temporary credential."
