@@ -19,8 +19,8 @@ Toolchain PATH and .NET settings are applied to SSH sessions through
 Run the selected Linux CI jobs on the worker:
 
 ```sh
-localci run -w dotnet-core.yml --event push setup build
-localci run --fast -w dotnet-core.yml --event push setup build
+localci run -w dotnet-core.yml --event push horizon-pins setup build
+localci run --fast -w dotnet-core.yml --event push horizon-pins setup build
 ```
 
 The localci wrapper starts MongoDB on localhost:27017 as the session user,
@@ -31,6 +31,14 @@ then `pwsh ./build.ps1 -RunTests`. Concurrent full test runs should be serialize
 because the fixtures share `MongoMigrationsUnitTests`.
 
 localci skips checkout and setup-dotnet actions; Horizon supplies the checkout
-and the image supplies the SDK. Proof selects only `setup` and `build` on push.
+and the image supplies the SDK. Proof selects `horizon-pins`, `setup` and `build`
+on push. Horizon generates `.horizon/verify-pins.py`; commit it with the setup.
+The verifier checks SDK and MongoDB version prefixes and the exact GitVersion
+version against the workflow using `.horizon/pins.json`.
 Publishing, release creation, and trusted publishing verification are excluded;
 no credentials are stored in these files or the image.
+
+The existing development profile is preserved. The company product map identifies
+`youpark.no` as a package consumer with `check_together: true`, but this repository's
+AGENTS.md does not require running its tests, so no same-worker companion is added.
+There are no qualifying runtime contracts; `company` supplies maintenance docs.

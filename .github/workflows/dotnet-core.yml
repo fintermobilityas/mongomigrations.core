@@ -18,6 +18,19 @@ env:
 
 jobs:
 
+  horizon-pins:
+    name: Verify Horizon toolchain pins
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Verify Horizon pins
+        run: python3 .horizon/verify-pins.py
+
   setup:
     if: ${{ !inputs.auth_only }}
     name: Setup

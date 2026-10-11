@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "pins": [
+    {
+      "arg": "DOTNET_VERSION",
+      "file": ".github/workflows/dotnet-core.yml",
+      "regex": "^\\s*DOTNET_100_SDK_VERSION:\\s*([0-9]+\\.[0-9]+)\\.x\\s*$",
+      "compare": "prefix"
+    },
+    {
+      "arg": "GITVERSION_VERSION",
+      "file": ".github/workflows/dotnet-core.yml",
+      "regex": "^\\s*GITVERSION_VERSION:\\s*([0-9]+\\.[0-9]+\\.[0-9]+)\\s*$"
+    },
+    {
+      "arg": "MONGODB_VERSION",
+      "file": ".github/workflows/dotnet-core.yml",
+      "regex": "^\\s*mongodb-version:\\s*\\['([0-9]+\\.[0-9]+)'\\]\\s*$",
+      "compare": "prefix"
+    }
+  ]
+}

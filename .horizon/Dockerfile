@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.7
-FROM ghcr.io/peters/horizon-worker-base@sha256:9f233978dedd3d99214990ff8346e9539d4c127d5e827c74488e21346823b8f2
+FROM ghcr.io/peters/horizon-worker-base@sha256:5d831ab73cc11575080ededaca851480fc9539c13916fd9c19e36903962526d8
 USER root
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
