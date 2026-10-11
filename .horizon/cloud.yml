@@ -1,0 +1,17 @@
+version: 1
+default: development
+profiles:
+  development:
+    provider: runpod
+    image: ghcr.io/fintermobilityas/mongomigrations.core-worker
+    build:
+      context: .horizon
+      dockerfile: .horizon/Dockerfile
+      platform: linux/amd64
+    min_cpu: 4
+    min_memory_gb: 8
+    gpu: false
+    capabilities:
+      agents: [claude, codex]
+      browsers: []
+      desktop: false

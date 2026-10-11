@@ -1,0 +1,9 @@
+#!/bin/bash
+set -euo pipefail
+# Include user-global tools installed by CI, whatever HOME the session uses.
+export PATH="$HOME/.dotnet/tools:/opt/dotnet:/opt/powershell:/opt/gitversion:$PATH"
+# Run the test database as the calling user; no Docker or root is required.
+if [[ "${1:-}" == run ]]; then
+    horizon-mongomigrations-mongodb
+fi
+exec /opt/localci/localci "$@"

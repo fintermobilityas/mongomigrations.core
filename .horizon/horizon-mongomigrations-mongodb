@@ -1,0 +1,12 @@
+#!/bin/bash
+set -euo pipefail
+state="$HOME/.local/state/mongomigrations-mongodb"
+mkdir -p "$state/db"
+# Concurrent CI/agent invocations share a single local test database.
+(
+    flock -x 9
+    if ! (exec 3<>/dev/tcp/127.0.0.1/27017) 2>/dev/null; then
+        /usr/bin/mongod --dbpath "$state/db" --logpath "$state/mongod.log" \
+            --bind_ip 127.0.0.1 --port 27017 --fork
+    fi
+) 9>"$state/start.lock"
