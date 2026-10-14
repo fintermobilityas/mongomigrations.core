@@ -4,8 +4,7 @@
     {
       "arg": "DOTNET_VERSION",
       "file": ".github/workflows/dotnet-core.yml",
-      "regex": "^\\s*DOTNET_100_SDK_VERSION:\\s*([0-9]+\\.[0-9]+)\\.x\\s*$",
-      "compare": "prefix"
+      "regex": "^\\s*DOTNET_100_SDK_VERSION:\\s*([0-9]+\\.[0-9]+\\.[0-9]+)\\s*$"
     },
     {
       "arg": "GITVERSION_VERSION",

@@ -5,9 +5,9 @@ workspace with Claude and Codex; no browser or desktop is required.
 
 The Dockerfile follows `.github/workflows/dotnet-core.yml`:
 
-- `DOTNET_100_SDK_VERSION=10.0.x` resolves to SDK 10.0.401.
+- `DOTNET_100_SDK_VERSION=10.0.402` pins SDK 10.0.402.
 - `shell: pwsh` is provided by PowerShell 7.6.6 (CI leaves it to the runner).
-- `GITVERSION_VERSION=6.4.0` is installed ahead of time; the unchanged `setup`
+- `GITVERSION_VERSION=6.4.0` is installed ahead of time; the `setup`
   job updates the user-global tool and emits the build job's `BUILD_VERSION`.
 - The MongoDB matrix's `8.0` resolves to MongoDB 8.0.32 for Ubuntu 24.04.
 - localci 0.1.0 is the latest release at setup time; its musl archive is checked
@@ -33,8 +33,7 @@ because the fixtures share `MongoMigrationsUnitTests`.
 localci skips checkout and setup-dotnet actions; Horizon supplies the checkout
 and the image supplies the SDK. Proof selects `horizon-pins`, `setup` and `build`
 on push. Horizon generates `.horizon/verify-pins.py`; commit it with the setup.
-The verifier checks SDK and MongoDB version prefixes and the exact GitVersion
-version against the workflow using `.horizon/pins.json`.
+The verifier checks the exact SDK and GitVersion versions and the MongoDB version prefix against the workflow using `.horizon/pins.json`.
 Publishing, release creation, and trusted publishing verification are excluded;
 no credentials are stored in these files or the image.
 
