@@ -43,6 +43,11 @@ jobs:
         with:
           fetch-depth: 0
       
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6.0.0
+        with:
+          dotnet-version: ${{ env.DOTNET_100_SDK_VERSION }}
+
       - id: set-version
         name: Setup GitVersion and set build version
         shell: pwsh
