@@ -1,6 +1,8 @@
 version: 2
 updates:
 - package-ecosystem: nuget
+  cooldown:
+    default-days: 3
   directory: "/"
   schedule:
     interval: daily
@@ -11,6 +13,8 @@ updates:
         - "MongoDB.Bson"
         - "MongoDB.Driver"
 - package-ecosystem: "github-actions"
+  cooldown:
+    default-days: 3
   directory: "/"
   schedule:
     interval: "daily"
