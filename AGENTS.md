@@ -4,6 +4,15 @@ A .NET library for typed MongoDB schema and data migrations: each migration is a
 
 Build, test and release instructions: `README.md`.
 
+## Claude review
+
+Claude reviews every pull request through `.github/workflows/claude-review.yml`, with at most 2 rounds per PR. Never request Copilot or another bot reviewer. This rule replaces the Copilot reviewer steps in the shared company procedure for this repository.
+
+- Round 1 runs automatically when a ready PR from a branch of this repository opens. A pull request from a fork gets a review only after a maintainer has examined its diff and added the `claude-review` label. Its summary comment ends with `<!-- claude-review head=<sha> findings=<n> -->` and covers only that head.
+- Fix or answer every finding on the same PR and push. Wait until `gh api repos/fintermobilityas/mongomigrations.core/pulls/<n> -q .head.sha` shows the new head, then add the `claude-review` label (`gh pr edit <n> --add-label claude-review`). That runs round 2, and the job removes the label when it finishes.
+- Do not request a third round. After round 2, fix or answer every finding; the PR then merges on green CI.
+- `.github/review-instructions.md` sets what the review reports. Put review rules there, not in a reviewer-specific file.
+
 <!-- company-products:begin -->
 ## Company and products
 
