@@ -14,7 +14,7 @@
     {
       "arg": "MONGODB_VERSION",
       "file": ".github/workflows/dotnet-core.yml",
-      "regex": "^\\s*mongodb-version:\\s*\\['([0-9]+\\.[0-9]+)'\\]\\s*$",
+      "regex": "^\\s*mongodb-version:\\s*\\['([0-9]+\\.[0-9]+(?:\\.[0-9]+)?)'\\]\\s*$",
       "compare": "prefix"
     }
   ]
