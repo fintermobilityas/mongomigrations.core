@@ -7,7 +7,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ARG DOTNET_VERSION=10.0.402
 ARG POWERSHELL_VERSION=7.6.6
 ARG GITVERSION_VERSION=6.4.0
-ARG MONGODB_VERSION=8.0.32
+ARG MONGODB_VERSION=9.0.4
 ARG LOCALCI_VERSION=0.1.0
 ENV DOTNET_ROOT=/opt/dotnet \
     DOTNET_CLI_TELEMETRY_OPTOUT=1 \
@@ -39,8 +39,8 @@ RUN --mount=type=cache,target=/root/.nuget/packages \
       --version "${GITVERSION_VERSION}" --allow-roll-forward
 
 # Replace the skipped Docker-based MongoDB action with its native Ubuntu server.
-RUN curl -fsSL "https://repo.mongodb.org/apt/ubuntu/dists/noble/mongodb-org/8.0/multiverse/binary-amd64/mongodb-org-server_${MONGODB_VERSION}_amd64.deb" -o /tmp/mongodb.deb \
-    && echo 'a6f0d74f63fa232a8cada49580368f4c29022d6b13ec157a7a816aaa8ce4203b  /tmp/mongodb.deb' | sha256sum -c - \
+RUN curl -fsSL "https://repo.mongodb.org/apt/ubuntu/dists/noble/mongodb-org/9.0/multiverse/binary-amd64/mongodb-org-server_${MONGODB_VERSION}_amd64.deb" -o /tmp/mongodb.deb \
+    && echo 'e179743f034e3c34081362551a982604badea9add6a6bf951490b9afa169b704  /tmp/mongodb.deb' | sha256sum -c - \
     && (printf '#!/bin/sh\nexit 101\n' > /usr/sbin/policy-rc.d) \
     && chmod 755 /usr/sbin/policy-rc.d \
     && dpkg -i /tmp/mongodb.deb \

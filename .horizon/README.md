@@ -9,7 +9,7 @@ The Dockerfile follows `.github/workflows/dotnet-core.yml`:
 - `shell: pwsh` is provided by PowerShell 7.6.6 (CI leaves it to the runner).
 - `GITVERSION_VERSION=6.4.0` is installed ahead of time; the `setup`
   job updates the user-global tool and emits the build job's `BUILD_VERSION`.
-- The MongoDB matrix's `8.0` resolves to MongoDB 8.0.32 for Ubuntu 24.04.
+- The MongoDB matrix pins MongoDB 9.0.4; the image installs the same server for Ubuntu 24.04.
 - localci 0.1.0 is the latest release at setup time; its musl archive is checked
   against the release's SHA256SUMS, which is also checked against its digest.
 
