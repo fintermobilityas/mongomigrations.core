@@ -5,7 +5,7 @@ workspace with Claude and Codex; no browser or desktop is required.
 
 The Dockerfile follows `.github/workflows/dotnet-core.yml`:
 
-- `DOTNET_100_SDK_VERSION=10.0.402` pins SDK 10.0.402.
+- `DOTNET_100_SDK_VERSION=10.0.403` pins SDK 10.0.403.
 - `shell: pwsh` is provided by PowerShell 7.6.6 (CI leaves it to the runner).
 - `GITVERSION_VERSION=6.4.0` is installed ahead of time; the `setup`
   job updates the user-global tool and emits the build job's `BUILD_VERSION`.

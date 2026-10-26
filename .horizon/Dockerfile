@@ -3,8 +3,8 @@ FROM ghcr.io/peters/horizon-worker-base@sha256:5d831ab73cc11575080ededaca851480f
 USER root
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# CI uses ubuntu-latest, pwsh and DOTNET_100_SDK_VERSION=10.0.402.
-ARG DOTNET_VERSION=10.0.402
+# CI uses ubuntu-latest, pwsh and DOTNET_100_SDK_VERSION=10.0.403.
+ARG DOTNET_VERSION=10.0.403
 ARG POWERSHELL_VERSION=7.6.6
 ARG GITVERSION_VERSION=6.4.0
 ARG MONGODB_VERSION=9.0.4
@@ -20,7 +20,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
       liblttng-ust1t64 libcurl4t64 zlib1g util-linux
 
 RUN curl -fsSL "https://builds.dotnet.microsoft.com/dotnet/Sdk/${DOTNET_VERSION}/dotnet-sdk-${DOTNET_VERSION}-linux-x64.tar.gz" -o /tmp/dotnet.tar.gz \
-    && echo '1904a98dda2db34ba78ba3c4fb1b224455329af91c341d83547843c1839e112b04ae699ee92fa2449a8f62249196a938723078c0c60b9f65c88539d5687729c2  /tmp/dotnet.tar.gz' | sha512sum -c - \
+    && echo 'b7b3d8461cf98b07d2552ce9199702fa3ad010ac2671a5f8cd5136f7534e50f6855ba7bbb02b11494563f1d04156276a31cda1103b900e5eecd0d9473dc7b9c5  /tmp/dotnet.tar.gz' | sha512sum -c - \
     && mkdir -p /opt/dotnet \
     && tar -xzf /tmp/dotnet.tar.gz -C /opt/dotnet \
     && rm /tmp/dotnet.tar.gz
