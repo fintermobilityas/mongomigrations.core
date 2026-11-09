@@ -136,7 +136,7 @@ jobs:
 
       - name: Create github release tag
         if: success() && github.ref == 'refs/heads/master'
-        uses: softprops/action-gh-release@v3.0.3
+        uses: softprops/action-gh-release@v3.0.4
         with:
           tag_name: v${{ env.BUILD_VERSION }}
           target_commitish: ${{ github.sha }}
