@@ -3,7 +3,7 @@ FROM ghcr.io/peters/horizon-worker-base@sha256:5d831ab73cc11575080ededaca851480f
 USER root
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# CI uses ubuntu-latest, pwsh and DOTNET_100_SDK_VERSION=10.0.404.
+# CI uses ubuntu-latest, pwsh and the SDK of global.json.
 ARG DOTNET_VERSION=10.0.404
 ARG POWERSHELL_VERSION=7.6.6
 ARG GITVERSION_VERSION=6.4.0

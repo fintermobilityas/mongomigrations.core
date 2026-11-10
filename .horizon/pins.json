@@ -3,8 +3,8 @@
   "pins": [
     {
       "arg": "DOTNET_VERSION",
-      "file": ".github/workflows/dotnet-core.yml",
-      "regex": "^\\s*DOTNET_100_SDK_VERSION:\\s*([0-9]+\\.[0-9]+\\.[0-9]+)\\s*$"
+      "file": "global.json",
+      "json": "sdk.version"
     },
     {
       "arg": "GITVERSION_VERSION",
@@ -13,9 +13,8 @@
     },
     {
       "arg": "MONGODB_VERSION",
-      "file": ".github/workflows/dotnet-core.yml",
-      "regex": "^\\s*mongodb-version:\\s*\\['([0-9]+\\.[0-9]+(?:\\.[0-9]+)?)'\\]\\s*$",
-      "compare": "prefix"
+      "file": "Directory.Build.props",
+      "xml": "MongoDBVersion"
     }
   ]
 }
