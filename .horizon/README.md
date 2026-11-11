@@ -9,7 +9,7 @@ The Dockerfile follows the files that CI reads:
 - `shell: pwsh` is provided by PowerShell 7.6.6 (CI leaves it to the runner).
 - `GITVERSION_VERSION=6.4.0` is installed ahead of time; the `setup`
   job updates the user-global tool and emits the build job's `BUILD_VERSION`.
-- `MongoDBVersion` in `Directory.Build.props` pins MongoDB 9.0.4 for the build job; the image installs the same server for Ubuntu 24.04.
+- `MongoDBVersion` in `Directory.Build.props` pins MongoDB 9.0.8 for the build job; the image installs the same server for Ubuntu 24.04.
 - localci 0.1.0 is the latest release at setup time; its musl archive is checked
   against the release's SHA256SUMS, which is also checked against its digest.
 

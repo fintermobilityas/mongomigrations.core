@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <MongoDBVersion>9.0.4</MongoDBVersion>
+        <MongoDBVersion>9.0.8</MongoDBVersion>
     </PropertyGroup>
 
     <PropertyGroup>
