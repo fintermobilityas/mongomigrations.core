@@ -7,6 +7,10 @@
     </PropertyGroup>
 
     <PropertyGroup>
+        <MongoDBVersion>9.0.4</MongoDBVersion>
+    </PropertyGroup>
+
+    <PropertyGroup>
         <NuGetAudit>true</NuGetAudit>
         <NuGetAuditMode>all</NuGetAuditMode>
         <NuGetAuditLevel>low</NuGetAuditLevel>

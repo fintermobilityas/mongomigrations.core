@@ -12,7 +12,6 @@ on:
 
 env:
   GITVERSION_VERSION: 6.4.0
-  DOTNET_100_SDK_VERSION: 10.0.404
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1 
 
@@ -37,6 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       BUILD_VERSION: ${{ steps.set-version.outputs.BUILD_VERSION }}
+      MONGODB_VERSION: ${{ steps.set-version.outputs.MONGODB_VERSION }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -46,7 +46,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v6.1.0
         with:
-          dotnet-version: ${{ env.DOTNET_100_SDK_VERSION }}
+          global-json-file: global.json
 
       - id: set-version
         name: Setup GitVersion and set build version
@@ -55,6 +55,8 @@ jobs:
             dotnet tool update GitVersion.Tool --global --version ${{ env.GITVERSION_VERSION }}
             $BUILD_VERSION = (dotnet gitversion /showVariable semver) | out-string
             echo "BUILD_VERSION=$BUILD_VERSION" >> $env:GITHUB_OUTPUT
+            $MONGODB_VERSION = ([xml](Get-Content Directory.Build.props)).SelectSingleNode("//MongoDBVersion").InnerText.Trim()
+            echo "MONGODB_VERSION=$MONGODB_VERSION" >> $env:GITHUB_OUTPUT
     
   build:
     name: Build
@@ -62,10 +64,10 @@ jobs:
     needs: [setup]
     env:
       BUILD_VERSION: ${{ needs.setup.outputs.BUILD_VERSION }}
+      MONGODB_VERSION: ${{ needs.setup.outputs.MONGODB_VERSION }}
     strategy:
       matrix:
         os: [ubuntu-latest]
-        mongodb-version: ['9.0.4']
     steps:      
       - name: Checkout
         uses: actions/checkout@v7
@@ -73,15 +75,15 @@ jobs:
           fetch-depth: 0
  
       - if: matrix.os == 'ubuntu-latest'
-        name: Setup mongodb v${{ matrix.mongodb-version }}
+        name: Setup mongodb v${{ env.MONGODB_VERSION }}
         uses: supercharge/mongodb-github-action@1.12.1
         with:
-          mongodb-version: ${{ matrix.mongodb-version }}
+          mongodb-version: ${{ env.MONGODB_VERSION }}
                                     
-      - name: Setup dotnet ${{ env.DOTNET_100_SDK_VERSION }}
+      - name: Setup dotnet
         uses: actions/setup-dotnet@v6.1.0
         with:
-          dotnet-version: ${{ env.DOTNET_100_SDK_VERSION }}
+          global-json-file: global.json
                 
       - name: Build & Run Tests
         shell: pwsh
@@ -105,10 +107,10 @@ jobs:
         with:
           fetch-depth: 0
       
-      - name: Setup dotnet ${{ env.DOTNET_100_SDK_VERSION }}
+      - name: Setup dotnet
         uses: actions/setup-dotnet@v6.1.0
         with:
-          dotnet-version: ${{ env.DOTNET_100_SDK_VERSION }}
+          global-json-file: global.json
 
       - name: Nupkg        
         shell: pwsh

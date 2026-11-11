@@ -3,13 +3,13 @@
 The development profile uses 4 vCPU and 8 GB RAM. It is a CPU-only library
 workspace with Claude and Codex; no browser or desktop is required.
 
-The Dockerfile follows `.github/workflows/dotnet-core.yml`:
+The Dockerfile follows the files that CI reads:
 
-- `DOTNET_100_SDK_VERSION=10.0.404` pins SDK 10.0.404.
+- `global.json` pins SDK 10.0.404; `.github/workflows/dotnet-core.yml` installs it from that file.
 - `shell: pwsh` is provided by PowerShell 7.6.6 (CI leaves it to the runner).
 - `GITVERSION_VERSION=6.4.0` is installed ahead of time; the `setup`
   job updates the user-global tool and emits the build job's `BUILD_VERSION`.
-- The MongoDB matrix pins MongoDB 9.0.4; the image installs the same server for Ubuntu 24.04.
+- `MongoDBVersion` in `Directory.Build.props` pins MongoDB 9.0.4 for the build job; the image installs the same server for Ubuntu 24.04.
 - localci 0.1.0 is the latest release at setup time; its musl archive is checked
   against the release's SHA256SUMS, which is also checked against its digest.
 
